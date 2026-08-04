@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meridian — Daily Capital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #eaf3f1;
+    --paper-dark: #d9ebe6;
+    --ink: #123a5e;
+    --ink-soft: #4d7088;
+    --brass: #1f9d6b;
+    --brass-light: #3fc088;
+    --teal: #1f7a9c;
+    --correct: #1f9d6b;
+    --miss: #3a5c78;
+    --line: #bcd7d0;
+    --radius: 10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 12% 8%, rgba(31,157,107,0.08), transparent 40%),
+      radial-gradient(circle at 88% 92%, rgba(31,122,156,0.10), transparent 45%),
+      var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    padding: 28px 16px 60px;
+  }
+  .wrap{max-width:560px;margin:0 auto;}
+
+  /* header */
+  .header{display:flex;align-items:center;gap:14px;margin-bottom:6px;}
+  .compass{width:52px;height:52px;flex-shrink:0;}
+  .titles h1{
+    font-family:'Fraunces',serif;
+    font-optical-sizing:auto;
+    font-weight:600;
+    font-size:34px;
+    letter-spacing:0.5px;
+    margin:0;
+    color:var(--ink);
+  }
+  .titles p{
+    margin:2px 0 0;
+    font-size:13px;
+    color:var(--ink-soft);
+    letter-spacing:0.3px;
+  }
+  .meta-row{
+    display:flex;justify-content:space-between;align-items:baseline;
+    margin:18px 0 16px;
+    padding-bottom:12px;
+    border-bottom:1px solid var(--line);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    letter-spacing:0.4px;
+  }
+  .meta-row b{color:var(--ink);}
+
+  /* search / combobox */
+  .search-box{position:relative;margin-bottom:18px;}
+  .mode-row{
+    display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;
+  }
+  .mode-btn{
+    font-family:'IBM Plex Mono',monospace;font-size:12.5px;
+    padding:9px 14px;border-radius:8px;border:1.5px solid var(--ink);
+    background:transparent;color:var(--ink);cursor:pointer;
+    letter-spacing:0.3px;
+    transition:box-shadow 0.3s ease, background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  }
+  .mode-btn.active{background:var(--ink);color:var(--paper);}
+
+  /* country-search button: greyed out while locked, flashing green to invite a click once available */
+  .mode-btn.country-mode{
+    border-color:var(--line);color:var(--ink-soft);background:transparent;
+  }
+  .mode-btn.country-mode:not(:disabled):not(.active){
+    border-color:var(--brass);color:var(--brass);
+    position:relative;z-index:1;
+    animation:country-glow 1s ease-in-out infinite;
+  }
+  .mode-btn.country-mode.active{
+    background:#1f9d6b;color:#fff;border-color:var(--brass);
+    box-shadow:0 0 24px 6px rgba(31,157,107,0.75);
+    position:relative;z-index:1;
+  }
+  @keyframes country-glow{
+    0%,100%{background:transparent; box-shadow:0 0 8px 2px rgba(31,157,107,0.35); transform:scale(1);}
+    50%{background:#39e08f; color:#fff; box-shadow:0 0 60px 22px rgba(57,224,143,1); transform:scale(1.08);}
+  }
+  .mode-btn:disabled{opacity:0.45;cursor:not-allowed;box-shadow:none;}
+  .mode-hint{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-soft);}
+  .search-input{
+    width:100%;
+    font-family:'Inter',sans-serif;
+    font-size:16px;
+    padding:14px 44px 14px 16px;
+    border:1.5px solid var(--ink);
+    border-radius:var(--radius);
+    background:#fbf6ea;
+    color:var(--ink);
+    outline:none;
+  }
+  .search-input:focus{border-color:var(--brass);box-shadow:0 0 0 3px rgba(31,157,107,0.15);}
+  .search-input:disabled{opacity:0.55;}
+  .search-icon{
+    position:absolute;right:14px;top:50%;transform:translateY(-50%);
+    width:18px;height:18px;color:var(--ink-soft);pointer-events:none;
+  }
+  .dropdown{
+    position:absolute;top:calc(100% + 6px);left:0;right:0;
+    background:#fbf6ea;
+    border:1.5px solid var(--ink);
+    border-radius:var(--radius);
+    max-height:260px;overflow-y:auto;
+    z-index:20;
+    box-shadow:0 8px 24px rgba(33,42,61,0.18);
+  }
+  .dropdown-item{
+    padding:10px 16px;cursor:pointer;
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+    border-bottom:1px solid rgba(188,215,208,0.6);
+    font-size:14.5px;
+  }
+  .dropdown-item:last-child{border-bottom:none;}
+  .dropdown-item:hover, .dropdown-item.active{background:rgba(31,157,107,0.14);}
+  .dropdown-item .city{font-weight:600;color:var(--ink);}
+  .dropdown-item .country{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-soft);}
+  .dropdown-empty{padding:14px 16px;font-size:13px;color:var(--ink-soft);font-style:italic;}
+
+  /* attempts dots */
+  .attempts{display:flex;gap:7px;margin-bottom:18px;}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--line);}
+  .dot.used-correct{background:var(--correct);}
+  .dot.used-miss{background:var(--miss);}
+
+  /* guess rows */
+  .guesses{display:flex;flex-direction:column;gap:10px;margin-bottom:22px;}
+  .guess-row{
+    background:#fbf6ea;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:12px 14px;
+    display:grid;
+    grid-template-columns:28px 1fr auto auto;
+    align-items:center;
+    gap:12px;
+    animation:pop 0.28s ease;
+  }
+  .guess-row.correct{border-color:var(--correct);background:rgba(31,157,107,0.08);}
+  @keyframes pop{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+  .guess-num{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);
+    width:28px;height:28px;border-radius:50%;background:var(--paper-dark);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .guess-city{min-width:0;}
+  .guess-city .name{font-weight:600;font-size:15px;color:var(--ink);}
+  .guess-city .ctry{font-size:11.5px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;}
+  .last-guess-warning{
+    font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;
+    letter-spacing:0.6px;text-transform:uppercase;color:#c62828;
+    margin-bottom:8px;display:none;
+  }
+  .last-guess-warning.show{display:block;animation:flash-warning 0.9s ease-in-out infinite;}
+  @keyframes flash-warning{
+    0%,100%{opacity:1;}
+    50%{opacity:0.25;}
+  }
+  .guess-dist{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;text-align:right;color:var(--ink);white-space:nowrap;
+  }
+  .guess-dist small{display:block;font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.5px;}
+  .guess-arrow{width:30px;height:30px;flex-shrink:0;}
+  .guess-arrow svg{width:100%;height:100%;transition:transform 0.4s ease;}
+  .correct-mark{
+    font-family:'IBM Plex Mono',monospace;color:var(--correct);font-weight:600;font-size:13px;
+  }
+  .proximity-bar{
+    grid-column:1 / -1;
+    height:4px;border-radius:2px;background:var(--line);overflow:hidden;margin-top:2px;
+  }
+  .proximity-fill{height:100%;background:var(--brass);transition:width 0.5s ease;}
+  .guess-row.correct .proximity-fill{background:var(--correct);}
+
+  /* reveal */
+  .reveal{
+    border:1.5px solid var(--ink);
+    border-radius:var(--radius);
+    background:#fbf6ea;
+    padding:20px 22px;
+    margin-top:6px;
+    transition:box-shadow 0.4s ease, border-color 0.4s ease;
+  }
+  .reveal.result-win{
+    border-color:var(--correct);
+    box-shadow:0 0 22px 5px rgba(31,157,107,0.45);
+  }
+  .reveal.result-loss{
+    border-color:#c1502f;
+    box-shadow:0 0 0 1px rgba(193,80,47,0.15);
+  }
+  .reveal-status{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;letter-spacing:1px;text-transform:uppercase;
+    color:var(--ink-soft);margin-bottom:4px;
+  }
+  .reveal-country{
+    font-family:'Fraunces',serif;font-weight:600;font-size:28px;color:var(--ink);margin:0;
+  }
+  .reveal-subtitle{
+    font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--ink-soft);
+    margin:2px 0 14px;letter-spacing:0.3px;
+  }
+  .reveal-section{margin-bottom:14px;}
+  .reveal-section h4{
+    margin:0 0 8px;font-size:11px;letter-spacing:0.8px;text-transform:uppercase;
+    color:var(--brass);font-family:'IBM Plex Mono',monospace;font-weight:600;
+  }
+  .city-line{
+    display:flex;justify-content:space-between;align-items:baseline;
+    padding:7px 0;border-bottom:1px dashed var(--line);
+    font-size:14.5px;
+  }
+  .city-line:last-child{border-bottom:none;}
+  .city-line .cname{color:var(--ink);}
+  .city-line .cnote{font-size:11.5px;color:var(--ink-soft);font-style:italic;margin-left:6px;}
+  .city-line .cpop{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--ink);}
+  .reveal-note{font-size:12.5px;color:var(--ink-soft);margin-top:10px;line-height:1.5;}
+  .next-btn{
+    margin-top:16px;width:100%;padding:12px;border-radius:var(--radius);
+    border:1.5px solid var(--ink);background:var(--ink);color:var(--paper);
+    font-family:'Inter',sans-serif;font-weight:600;font-size:14px;cursor:pointer;
+  }
+  .next-btn:hover{background:#33405c;}
+  .footnote{
+    text-align:center;font-size:11px;color:var(--ink-soft);margin-top:24px;line-height:1.6;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <svg class="compass" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="30" cy="30" r="27" stroke="#123a5e" stroke-width="1.5"/>
+      <circle cx="30" cy="30" r="21" stroke="#1f9d6b" stroke-width="1"/>
+      <path d="M30 8 L34 30 L30 52 L26 30 Z" fill="#123a5e"/>
+      <path d="M8 30 L30 26 L52 30 L30 34 Z" fill="#1f9d6b" opacity="0.6"/>
+      <circle cx="30" cy="30" r="3" fill="#1f9d6b"/>
+      <text x="30" y="7" font-size="6" fill="#123a5e" text-anchor="middle" font-family="IBM Plex Mono, monospace">N</text>
+    </svg>
+    <div class="titles">
+      <h1>Meridian</h1>
+      <p>Guess the capital. Every arrow tells you which way to look.</p>
+    </div>
+  </div>
+
+  <div class="meta-row">
+    <span>PUZZLE <b id="puzzleNum">—</b></span>
+    <span id="todayDate">—</span>
+  </div>
+
+  <div class="attempts" id="attemptsRow"></div>
+
+  <div class="mode-row" id="modeRow">
+    <button class="mode-btn active" id="capModeBtn">Search capitals</button>
+    <button class="mode-btn country-mode" id="countryModeBtn">🌍 Search countries instead <span id="countryModeCount"></span></button>
+  </div>
+
+  <div class="last-guess-warning" id="lastGuessWarning">⚠ Last guess! ⚠</div>
+
+  <div class="search-box" id="searchBox">
+    <input type="text" class="search-input" id="searchInput" placeholder="Type a capital city…" autocomplete="off" />
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <div class="dropdown" id="dropdown" style="display:none;"></div>
+  </div>
+
+  <div class="guesses" id="guessesList"></div>
+
+  <div id="revealZone"></div>
+
+  <div class="footnote">Distance is measured great-circle, arrow points from your guess toward today's capital. Populations are approximate, most recent estimates. Countries with more than one official capital accept any of them.</div>
+
+</div>
+<script id="capitals-data" type="application/json">
+[{"country": "Afghanistan", "capitals": [{"name": "Kabul", "lat": 34.5289, "lon": 69.1725, "population": 4011770, "note": null}], "otherCities": []}, {"country": "Albania", "capitals": [{"name": "Tirana", "lat": 41.3275, "lon": 19.8189, "population": 475577, "note": null}], "otherCities": []}, {"country": "Algeria", "capitals": [{"name": "Algiers", "lat": 36.7525, "lon": 3.042, "population": 2693542, "note": null}], "otherCities": [{"name": "Oran", "population": 922000}]}, {"country": "Andorra", "capitals": [{"name": "Andorra la Vella", "lat": 42.5078, "lon": 1.5211, "population": 22614, "note": null}], "otherCities": []}, {"country": "Angola", "capitals": [{"name": "Luanda", "lat": -8.8368, "lon": 13.2343, "population": 9292000, "note": null}], "otherCities": [{"name": "Lubango", "population": 959000}, {"name": "Huambo", "population": 905000}]}, {"country": "Antigua and Barbuda", "capitals": [{"name": "St. John's", "lat": 17.1172, "lon": -61.8457, "population": 20764, "note": null}], "otherCities": []}, {"country": "Argentina", "capitals": [{"name": "Buenos Aires", "lat": -34.6051, "lon": -58.4004, "population": 15490000, "note": null}], "otherCities": [{"name": "Cordoba", "population": 1612000}, {"name": "Rosario", "population": 1594000}]}, {"country": "Armenia", "capitals": [{"name": "Yerevan", "lat": 40.182, "lon": 44.5146, "population": 1095000, "note": null}], "otherCities": []}, {"country": "Australia", "capitals": [{"name": "Canberra", "lat": -35.2835, "lon": 149.1281, "population": 472000, "note": null}], "otherCities": [{"name": "Melbourne", "population": 5235000}, {"name": "Sydney", "population": 5121000}]}, {"country": "Austria", "capitals": [{"name": "Vienna", "lat": 48.2064, "lon": 16.3707, "population": 1975000, "note": null}], "otherCities": []}, {"country": "Azerbaijan", "capitals": [{"name": "Baku", "lat": 40.3777, "lon": 49.892, "population": 2432000, "note": null}], "otherCities": []}, {"country": "Bahamas", "capitals": [{"name": "Nassau", "lat": 25.0582, "lon": -77.3431, "population": 280000, "note": null}], "otherCities": []}, {"country": "Bahrain", "capitals": [{"name": "Manama", "lat": 26.2154, "lon": 50.5832, "population": 689000, "note": null}], "otherCities": []}, {"country": "Bangladesh", "capitals": [{"name": "Dhaka", "lat": 23.7104, "lon": 90.4074, "population": 23210000, "note": null}], "otherCities": [{"name": "Chittagong", "population": 5380000}]}, {"country": "Barbados", "capitals": [{"name": "Bridgetown", "lat": 13.1, "lon": -59.6167, "population": 89201, "note": null}], "otherCities": []}, {"country": "Belarus", "capitals": [{"name": "Minsk", "lat": 53.9, "lon": 27.5667, "population": 2049000, "note": null}], "otherCities": []}, {"country": "Belgium", "capitals": [{"name": "Brussels", "lat": 50.8467, "lon": 4.3499, "population": 2110000, "note": null}], "otherCities": [{"name": "Antwerp", "population": 1053000}]}, {"country": "Belize", "capitals": [{"name": "Belmopan", "lat": 17.25, "lon": -88.7667, "population": 22964, "note": null}], "otherCities": []}, {"country": "Benin", "capitals": [{"name": "Porto-Novo", "lat": 6.4969, "lon": 2.6289, "population": 285000, "note": "constitutional capital"}, {"name": "Cotonou", "lat": 6.3654, "lon": 2.4183, "population": 709000, "note": "seat of government"}], "otherCities": [{"name": "Abomey-Calavi", "population": 1189000}]}, {"country": "Bhutan", "capitals": [{"name": "Thimphu", "lat": 27.4661, "lon": 89.6419, "population": 203297, "note": null}], "otherCities": []}, {"country": "Bolivia", "capitals": [{"name": "Sucre", "lat": -19.0196, "lon": -65.2619, "population": 278000, "note": "constitutional capital"}, {"name": "La Paz", "lat": -16.5, "lon": -68.15, "population": 1908000, "note": "seat of government"}], "otherCities": [{"name": "Santa Cruz", "population": 1784000}, {"name": "Cochabamba", "population": 1369000}]}, {"country": "Bosnia and Herzegovina", "capitals": [{"name": "Sarajevo", "lat": 43.8486, "lon": 18.3564, "population": 344000, "note": null}], "otherCities": []}, {"country": "Botswana", "capitals": [{"name": "Gaborone", "lat": -24.6545, "lon": 25.9086, "population": 269338, "note": null}], "otherCities": []}, {"country": "Brazil", "capitals": [{"name": "Brasília", "lat": -15.7797, "lon": -47.9297, "population": 4873000, "note": null}], "otherCities": [{"name": "Sao Paulo", "population": 22620000}, {"name": "Rio de Janeiro", "population": 13728000}]}, {"country": "Brunei", "capitals": [{"name": "Bandar Seri Begawan", "lat": 4.9403, "lon": 114.9481, "population": 241000, "note": null}], "otherCities": []}, {"country": "Bulgaria", "capitals": [{"name": "Sofia", "lat": 42.6975, "lon": 23.3242, "population": 1287000, "note": null}], "otherCities": []}, {"country": "Burkina Faso", "capitals": [{"name": "Ouagadougou", "lat": 12.3642, "lon": -1.5383, "population": 3056000, "note": null}], "otherCities": [{"name": "Bobo-Dioulasso", "population": 1074000}]}, {"country": "Burundi", "capitals": [{"name": "Gitega", "lat": -3.4264, "lon": 29.9306, "population": 135000, "note": "official capital"}, {"name": "Bujumbura", "lat": -3.3822, "lon": 29.3644, "population": 1139000, "note": "economic capital"}], "otherCities": []}, {"country": "Cabo Verde", "capitals": [{"name": "Praia", "lat": 14.9215, "lon": -23.5087, "population": 168000, "note": null}], "otherCities": []}, {"country": "Cambodia", "capitals": [{"name": "Phnom Penh", "lat": 11.5625, "lon": 104.916, "population": 2211000, "note": null}], "otherCities": []}, {"country": "Cameroon", "capitals": [{"name": "Yaoundé", "lat": 3.8667, "lon": 11.5167, "population": 4164000, "note": null}], "otherCities": [{"name": "Douala", "population": 3927000}]}, {"country": "Canada", "capitals": [{"name": "Ottawa", "lat": 45.4166, "lon": -75.698, "population": 1437000, "note": null}], "otherCities": [{"name": "Toronto", "population": 6372000}, {"name": "Montreal", "population": 4308000}, {"name": "Vancouver", "population": 3050000}]}, {"country": "Central African Republic", "capitals": [{"name": "Bangui", "lat": 4.3612, "lon": 18.555, "population": 933000, "note": null}], "otherCities": []}, {"country": "Chad", "capitals": [{"name": "N'Djamena", "lat": 12.1067, "lon": 15.0444, "population": 1533000, "note": null}], "otherCities": []}, {"country": "Chile", "capitals": [{"name": "Santiago", "lat": -33.4569, "lon": -70.6483, "population": 6903000, "note": null}], "otherCities": [{"name": "Valparaiso", "population": 1009000}]}, {"country": "China", "capitals": [{"name": "Beijing", "lat": 39.9075, "lon": 116.3972, "population": 21766000, "note": null}], "otherCities": [{"name": "Shanghai", "population": 29211000}, {"name": "Chongqing", "population": 17341000}, {"name": "Guangzhou", "population": 14284000}]}, {"country": "Colombia", "capitals": [{"name": "Bogotá", "lat": 4.6097, "lon": -74.0818, "population": 11508000, "note": null}], "otherCities": [{"name": "Medellin", "population": 4102000}, {"name": "Cali", "population": 2864000}]}, {"country": "Comoros", "capitals": [{"name": "Moroni", "lat": -11.7022, "lon": 43.2551, "population": 62000, "note": null}], "otherCities": []}, {"country": "Congo (Republic of the)", "capitals": [{"name": "Brazzaville", "lat": -4.2658, "lon": 15.2832, "population": 2638000, "note": null}], "otherCities": [{"name": "Pointe-Noire", "population": 1336000}]}, {"country": "Costa Rica", "capitals": [{"name": "San José", "lat": 9.9278, "lon": -84.0807, "population": 1441000, "note": null}], "otherCities": []}, {"country": "Ivory Coast", "capitals": [{"name": "Yamoussoukro", "lat": 6.8276, "lon": -5.2893, "population": 231000, "note": "official capital"}, {"name": "Abidjan", "lat": 5.3453, "lon": -4.0268, "population": 5516000, "note": "seat of government"}], "otherCities": []}, {"country": "Croatia", "capitals": [{"name": "Zagreb", "lat": 45.8144, "lon": 15.978, "population": 684000, "note": null}], "otherCities": []}, {"country": "Cuba", "capitals": [{"name": "Havana", "lat": 23.1195, "lon": -82.3785, "population": 2149000, "note": null}], "otherCities": []}, {"country": "Cyprus", "capitals": [{"name": "Nicosia", "lat": 35.1595, "lon": 33.3669, "population": 269000, "note": null}], "otherCities": []}, {"country": "Czechia", "capitals": [{"name": "Prague", "lat": 50.088, "lon": 14.4208, "population": 1318000, "note": null}], "otherCities": []}, {"country": "North Korea", "capitals": [{"name": "Pyongyang", "lat": 39.0339, "lon": 125.7543, "population": 3158000, "note": null}], "otherCities": []}, {"country": "DR Congo", "capitals": [{"name": "Kinshasa", "lat": -4.3276, "lon": 15.3136, "population": 16316000, "note": null}], "otherCities": [{"name": "Mbuji-Mayi", "population": 2892000}, {"name": "Lubumbashi", "population": 2812000}]}, {"country": "Denmark", "capitals": [{"name": "Copenhagen", "lat": 55.6759, "lon": 12.5655, "population": 1370000, "note": null}], "otherCities": []}, {"country": "Djibouti", "capitals": [{"name": "Djibouti City", "lat": 11.5877, "lon": 43.1447, "population": 591000, "note": null}], "otherCities": []}, {"country": "Dominica", "capitals": [{"name": "Roseau", "lat": 15.3017, "lon": -61.3881, "population": 14942, "note": null}], "otherCities": []}, {"country": "Dominican Republic", "capitals": [{"name": "Santo Domingo", "lat": 18.4896, "lon": -69.9018, "population": 3524000, "note": null}], "otherCities": []}, {"country": "Ecuador", "capitals": [{"name": "Quito", "lat": -0.2299, "lon": -78.525, "population": 1957000, "note": null}], "otherCities": [{"name": "Guayaquil", "population": 3142000}]}, {"country": "Egypt", "capitals": [{"name": "Cairo", "lat": 30.0392, "lon": 31.2394, "population": 22183000, "note": null}], "otherCities": [{"name": "Alexandria", "population": 5588000}]}, {"country": "El Salvador", "capitals": [{"name": "San Salvador", "lat": 13.6894, "lon": -89.1872, "population": 1116000, "note": null}], "otherCities": []}, {"country": "Equatorial Guinea", "capitals": [{"name": "Malabo", "lat": 3.75, "lon": 8.7833, "population": 297000, "note": null}], "otherCities": []}, {"country": "Eritrea", "capitals": [{"name": "Asmara", "lat": 15.3333, "lon": 38.9333, "population": 1073000, "note": null}], "otherCities": []}, {"country": "Estonia", "capitals": [{"name": "Tallinn", "lat": 59.437, "lon": 24.7535, "population": 452000, "note": null}], "otherCities": []}, {"country": "Eswatini", "capitals": [{"name": "Mbabane", "lat": -26.3167, "lon": 31.1333, "population": 68000, "note": "administrative capital"}, {"name": "Lobamba", "lat": -26.4666, "lon": 31.2, "population": 5500, "note": "legislative & royal capital"}], "otherCities": []}, {"country": "Ethiopia", "capitals": [{"name": "Addis Ababa", "lat": 9.025, "lon": 38.7469, "population": 5461000, "note": null}], "otherCities": []}, {"country": "Fiji", "capitals": [{"name": "Suva", "lat": -18.1416, "lon": 178.4415, "population": 178339, "note": null}], "otherCities": []}, {"country": "Finland", "capitals": [{"name": "Helsinki", "lat": 60.1692, "lon": 24.9402, "population": 1328000, "note": null}], "otherCities": []}, {"country": "France", "capitals": [{"name": "Paris", "lat": 48.8534, "lon": 2.3488, "population": 11208000, "note": null}], "otherCities": [{"name": "Lyon", "population": 1761000}, {"name": "Marseille", "population": 1628000}]}, {"country": "Gabon", "capitals": [{"name": "Libreville", "lat": 0.3925, "lon": 9.4537, "population": 857000, "note": null}], "otherCities": []}, {"country": "Gambia", "capitals": [{"name": "Banjul", "lat": 13.4531, "lon": -16.6794, "population": 470000, "note": null}], "otherCities": []}, {"country": "Georgia", "capitals": [{"name": "Tbilisi", "lat": 41.6941, "lon": 44.8337, "population": 1203000, "note": null}], "otherCities": []}, {"country": "Germany", "capitals": [{"name": "Berlin", "lat": 52.5244, "lon": 13.4105, "population": 3574000, "note": null}], "otherCities": [{"name": "Hamburg", "population": 1788000}, {"name": "Munich", "population": 1576000}]}, {"country": "Ghana", "capitals": [{"name": "Accra", "lat": 5.556, "lon": -0.1969, "population": 2605000, "note": null}], "otherCities": [{"name": "Kumasi", "population": 3630000}]}, {"country": "Greece", "capitals": [{"name": "Athens", "lat": 37.9534, "lon": 23.749, "population": 3154000, "note": null}], "otherCities": [{"name": "Thessaloniki", "population": 814000}]}, {"country": "Greenland", "capitals": [{"name": "Nuuk", "lat": 64.1835, "lon": -51.7216, "population": 18406, "note": null}], "otherCities": []}, {"country": "Grenada", "capitals": [{"name": "St. George's", "lat": 12.0564, "lon": -61.7485, "population": 39297, "note": null}], "otherCities": []}, {"country": "Guatemala", "capitals": [{"name": "Guatemala City", "lat": 14.6127, "lon": -90.5307, "population": 3095000, "note": null}], "otherCities": []}, {"country": "Guinea", "capitals": [{"name": "Conakry", "lat": 9.5716, "lon": -13.6476, "population": 2049000, "note": null}], "otherCities": []}, {"country": "Guinea-Bissau", "capitals": [{"name": "Bissau", "lat": 11.8636, "lon": -15.5977, "population": 643000, "note": null}], "otherCities": []}, {"country": "Guyana", "capitals": [{"name": "Georgetown", "lat": 6.8045, "lon": -58.1553, "population": 110000, "note": null}], "otherCities": []}, {"country": "Haiti", "capitals": [{"name": "Port-au-Prince", "lat": 18.5392, "lon": -72.335, "population": 2915000, "note": null}], "otherCities": []}, {"country": "Vatican City", "capitals": [{"name": "Vatican City", "lat": 41.9024, "lon": 12.4533, "population": 801, "note": null}], "otherCities": []}, {"country": "Honduras", "capitals": [{"name": "Tegucigalpa", "lat": 14.0818, "lon": -87.2068, "population": 1568000, "note": null}], "otherCities": [{"name": "San Pedro Sula", "population": 982000}]}, {"country": "Hungary", "capitals": [{"name": "Budapest", "lat": 47.498, "lon": 19.0399, "population": 1775000, "note": null}], "otherCities": []}, {"country": "Iceland", "capitals": [{"name": "Reykjavík", "lat": 64.1355, "lon": -21.8954, "population": 216364, "note": null}], "otherCities": []}, {"country": "India", "capitals": [{"name": "New Delhi", "lat": 28.6667, "lon": 77.2167, "population": 32941000, "note": null}], "otherCities": [{"name": "Mumbai", "population": 21297000}, {"name": "Kolkata", "population": 15333000}, {"name": "Bangalore", "population": 13608000}]}, {"country": "Indonesia", "capitals": [{"name": "Jakarta", "lat": -6.2118, "lon": 106.8416, "population": 11249000, "note": null}], "otherCities": [{"name": "Surabaya", "population": 3044000}, {"name": "Bandung", "population": 2674000}]}, {"country": "Iran", "capitals": [{"name": "Tehran", "lat": 35.6944, "lon": 51.4215, "population": 9500000, "note": null}], "otherCities": [{"name": "Mashhad", "population": 3368000}, {"name": "Esfahan", "population": 2258000}]}, {"country": "Iraq", "capitals": [{"name": "Baghdad", "lat": 33.3406, "lon": 44.4009, "population": 7711000, "note": null}], "otherCities": [{"name": "Mosul", "population": 1792000}, {"name": "Basra", "population": 1448000}]}, {"country": "Ireland", "capitals": [{"name": "Dublin", "lat": 53.3331, "lon": -6.2489, "population": 1256000, "note": null}], "otherCities": []}, {"country": "Israel", "capitals": [{"name": "Jerusalem", "lat": 31.769, "lon": 35.2163, "population": 1254000, "note": null}], "otherCities": [{"name": "Tel Aviv", "population": 4344000}, {"name": "Haifa", "population": 1164000}]}, {"country": "Italy", "capitals": [{"name": "Rome", "lat": 41.8947, "lon": 12.4811, "population": 4316000, "note": null}], "otherCities": [{"name": "Milan", "population": 3155000}, {"name": "Naples", "population": 2179000}]}, {"country": "Jamaica", "capitals": [{"name": "Kingston", "lat": 17.997, "lon": -76.7936, "population": 595000, "note": null}], "otherCities": []}, {"country": "Japan", "capitals": [{"name": "Tokyo", "lat": 35.6895, "lon": 139.6917, "population": 37194000, "note": null}], "otherCities": [{"name": "Osaka", "population": 19013000}, {"name": "Nagoya", "population": 9569000}]}, {"country": "Jordan", "capitals": [{"name": "Amman", "lat": 31.9552, "lon": 35.945, "population": 2210000, "note": null}], "otherCities": []}, {"country": "Kazakhstan", "capitals": [{"name": "Astana", "lat": 51.1801, "lon": 71.446, "population": 1291000, "note": null}], "otherCities": [{"name": "Almaty", "population": 1987000}]}, {"country": "Kenya", "capitals": [{"name": "Nairobi", "lat": -1.2833, "lon": 36.8167, "population": 5325000, "note": null}], "otherCities": [{"name": "Mombasa", "population": 1440000}]}, {"country": "Kiribati", "capitals": [{"name": "Tarawa", "lat": 1.3272, "lon": 172.9813, "population": 64011, "note": null}], "otherCities": []}, {"country": "Kosovo", "capitals": [{"name": "Pristina", "lat": 42.6629, "lon": 21.1655, "population": 216870, "note": null}], "otherCities": []}, {"country": "Kuwait", "capitals": [{"name": "Kuwait City", "lat": 29.3697, "lon": 47.9783, "population": 3298000, "note": null}], "otherCities": []}, {"country": "Kyrgyzstan", "capitals": [{"name": "Bishkek", "lat": 42.87, "lon": 74.59, "population": 1105000, "note": null}], "otherCities": []}, {"country": "Laos", "capitals": [{"name": "Vientiane", "lat": 17.9667, "lon": 102.6, "population": 706000, "note": null}], "otherCities": []}, {"country": "Latvia", "capitals": [{"name": "Riga", "lat": 56.946, "lon": 24.1059, "population": 625000, "note": null}], "otherCities": []}, {"country": "Lebanon", "capitals": [{"name": "Beirut", "lat": 33.9, "lon": 35.4833, "population": 2433000, "note": null}], "otherCities": []}, {"country": "Lesotho", "capitals": [{"name": "Maseru", "lat": -29.3167, "lon": 27.4833, "population": 350000, "note": null}], "otherCities": []}, {"country": "Liberia", "capitals": [{"name": "Monrovia", "lat": 6.3005, "lon": -10.7969, "population": 1623000, "note": null}], "otherCities": []}, {"country": "Libya", "capitals": [{"name": "Tripoli", "lat": 32.8752, "lon": 13.1875, "population": 1183000, "note": null}], "otherCities": [{"name": "Misratah", "population": 984000}, {"name": "Benghazi", "population": 859000}]}, {"country": "Liechtenstein", "capitals": [{"name": "Vaduz", "lat": 47.1415, "lon": 9.5215, "population": 5470, "note": null}], "otherCities": []}, {"country": "Lithuania", "capitals": [{"name": "Vilnius", "lat": 54.6892, "lon": 25.2798, "population": 541000, "note": null}], "otherCities": []}, {"country": "Luxembourg", "capitals": [{"name": "Luxembourg City", "lat": 49.6117, "lon": 6.13, "population": 120000, "note": null}], "otherCities": []}, {"country": "Madagascar", "capitals": [{"name": "Antananarivo", "lat": -18.9137, "lon": 47.5361, "population": 3700000, "note": null}], "otherCities": []}, {"country": "Malawi", "capitals": [{"name": "Lilongwe", "lat": -13.9669, "lon": 33.7873, "population": 1222000, "note": null}], "otherCities": [{"name": "Blantyre", "population": 995000}]}, {"country": "Malaysia", "capitals": [{"name": "Kuala Lumpur", "lat": 3.1412, "lon": 101.6865, "population": 8622000, "note": null}, {"name": "Putrajaya", "lat": 2.9264, "lon": 101.6964, "population": 109000, "note": "administrative capital"}], "otherCities": [{"name": "Johor Bahru", "population": 1086000}]}, {"country": "Maldives", "capitals": [{"name": "Malé", "lat": 4.1748, "lon": 73.5089, "population": 177000, "note": null}], "otherCities": []}, {"country": "Mali", "capitals": [{"name": "Bamako", "lat": 12.65, "lon": -8.0, "population": 2817000, "note": null}], "otherCities": []}, {"country": "Malta", "capitals": [{"name": "Valletta", "lat": 35.8997, "lon": 14.5147, "population": 213000, "note": null}], "otherCities": []}, {"country": "Marshall Islands", "capitals": [{"name": "Majuro", "lat": 7.0897, "lon": 171.3803, "population": 30661, "note": null}], "otherCities": []}, {"country": "Mauritania", "capitals": [{"name": "Nouakchott", "lat": 18.0858, "lon": -15.9785, "population": 1432000, "note": null}], "otherCities": []}, {"country": "Mauritius", "capitals": [{"name": "Port Louis", "lat": -20.1619, "lon": 57.4989, "population": 149000, "note": null}], "otherCities": []}, {"country": "Mexico", "capitals": [{"name": "Mexico City", "lat": 19.4273, "lon": -99.1419, "population": 22281000, "note": null}], "otherCities": [{"name": "Guadalajara", "population": 5420000}, {"name": "Monterrey", "population": 5117000}]}, {"country": "Micronesia", "capitals": [{"name": "Palikir", "lat": 6.9174, "lon": 158.1588, "population": 6996, "note": null}], "otherCities": []}, {"country": "Moldova", "capitals": [{"name": "Chisinau", "lat": 47.0056, "lon": 28.8575, "population": 491000, "note": null}], "otherCities": []}, {"country": "Monaco", "capitals": [{"name": "Monaco", "lat": 43.7333, "lon": 7.4167, "population": 38897, "note": null}], "otherCities": []}, {"country": "Mongolia", "capitals": [{"name": "Ulaanbaatar", "lat": 47.9077, "lon": 106.8832, "population": 1645000, "note": null}], "otherCities": []}, {"country": "Montenegro", "capitals": [{"name": "Podgorica", "lat": 42.4411, "lon": 19.2636, "population": 177000, "note": null}], "otherCities": []}, {"country": "Morocco", "capitals": [{"name": "Rabat", "lat": 34.0133, "lon": -6.8326, "population": 1959000, "note": null}], "otherCities": [{"name": "Casablanca", "population": 3893000}]}, {"country": "Mozambique", "capitals": [{"name": "Maputo", "lat": -25.9653, "lon": 32.5892, "population": 1139000, "note": null}], "otherCities": [{"name": "Matola", "population": 1797000}]}, {"country": "Myanmar", "capitals": [{"name": "Naypyidaw", "lat": 19.745, "lon": 96.1297, "population": 500218, "note": null}], "otherCities": [{"name": "Yangon", "population": 5610000}]}, {"country": "Namibia", "capitals": [{"name": "Windhoek", "lat": -22.5594, "lon": 17.0832, "population": 461000, "note": null}], "otherCities": []}, {"country": "Nauru", "capitals": [{"name": "Yaren", "lat": -0.5308, "lon": 166.9112, "population": 11312, "note": null}], "otherCities": []}, {"country": "Nepal", "capitals": [{"name": "Kathmandu", "lat": 27.7017, "lon": 85.3206, "population": 1521000, "note": null}], "otherCities": []}, {"country": "Netherlands", "capitals": [{"name": "Amsterdam", "lat": 52.374, "lon": 4.8897, "population": 2480000, "note": "capital"}, {"name": "The Hague", "lat": 52.0705, "lon": 4.3007, "population": 553000, "note": "seat of government"}], "otherCities": []}, {"country": "New Zealand", "capitals": [{"name": "Wellington", "lat": -41.2866, "lon": 174.7756, "population": 419000, "note": null}], "otherCities": [{"name": "Auckland", "population": 1652000}]}, {"country": "Nicaragua", "capitals": [{"name": "Managua", "lat": 12.1328, "lon": -86.2504, "population": 1095000, "note": null}], "otherCities": []}, {"country": "Niger", "capitals": [{"name": "Niamey", "lat": 13.5137, "lon": 2.1098, "population": 1384000, "note": null}], "otherCities": []}, {"country": "Nigeria", "capitals": [{"name": "Abuja", "lat": 9.0574, "lon": 7.4898, "population": 3840000, "note": null}], "otherCities": [{"name": "Lagos", "population": 15946000}, {"name": "Kano", "population": 4348000}]}, {"country": "North Macedonia", "capitals": [{"name": "Skopje", "lat": 42.0, "lon": 21.4333, "population": 606000, "note": null}], "otherCities": []}, {"country": "Norway", "capitals": [{"name": "Oslo", "lat": 59.9127, "lon": 10.7461, "population": 1071000, "note": null}], "otherCities": []}, {"country": "Oman", "capitals": [{"name": "Muscat", "lat": 23.6139, "lon": 58.5922, "population": 1623000, "note": null}], "otherCities": []}, {"country": "Pakistan", "capitals": [{"name": "Islamabad", "lat": 33.7035, "lon": 73.0594, "population": 1232000, "note": null}], "otherCities": [{"name": "Karachi", "population": 17236000}, {"name": "Lahore", "population": 13979000}]}, {"country": "Palau", "capitals": [{"name": "Ngerulmud", "lat": 7.3426, "lon": 134.4789, "population": 277, "note": null}], "otherCities": []}, {"country": "Palestine", "capitals": [{"name": "Ramallah", "lat": 31.9038, "lon": 35.2034, "population": 153237, "note": "administrative capital"}, {"name": "East Jerusalem", "lat": 31.7834, "lon": 35.2339, "population": 275086, "note": "claimed capital"}], "otherCities": [{"name": "Gaza City", "population": 756000}]}, {"country": "Panama", "capitals": [{"name": "Panama City", "lat": 8.9958, "lon": -79.5196, "population": 1977000, "note": null}], "otherCities": []}, {"country": "Papua New Guinea", "capitals": [{"name": "Port Moresby", "lat": -9.4431, "lon": 147.1797, "population": 410000, "note": null}], "otherCities": []}, {"country": "Paraguay", "capitals": [{"name": "Asunción", "lat": -25.3007, "lon": -57.6359, "population": 3511000, "note": null}], "otherCities": []}, {"country": "Peru", "capitals": [{"name": "Lima", "lat": -12.0432, "lon": -77.0282, "population": 11204000, "note": null}], "otherCities": [{"name": "Arequipa", "population": 959000}]}, {"country": "Philippines", "capitals": [{"name": "Manila", "lat": 14.6042, "lon": 120.9822, "population": 14667000, "note": null}], "otherCities": [{"name": "Davao", "population": 1949000}, {"name": "Cebu City", "population": 1025000}]}, {"country": "Poland", "capitals": [{"name": "Warsaw", "lat": 52.2298, "lon": 21.0118, "population": 1798000, "note": null}], "otherCities": [{"name": "Krakow", "population": 769000}]}, {"country": "Portugal", "capitals": [{"name": "Lisbon", "lat": 38.7169, "lon": -9.1399, "population": 3001000, "note": null}], "otherCities": [{"name": "Porto", "population": 1325000}]}, {"country": "Qatar", "capitals": [{"name": "Doha", "lat": 25.2747, "lon": 51.5245, "population": 652000, "note": null}], "otherCities": []}, {"country": "South Korea", "capitals": [{"name": "Seoul", "lat": 37.5683, "lon": 126.9778, "population": 9988000, "note": null}], "otherCities": [{"name": "Busan", "population": 3472000}, {"name": "Incheon", "population": 2849000}]}, {"country": "Romania", "capitals": [{"name": "Bucharest", "lat": 44.4328, "lon": 26.1043, "population": 1785000, "note": null}], "otherCities": []}, {"country": "Russia", "capitals": [{"name": "Moscow", "lat": 55.755, "lon": 37.6218, "population": 12680000, "note": null}], "otherCities": [{"name": "Saint Petersburg", "population": 5561000}]}, {"country": "Rwanda", "capitals": [{"name": "Kigali", "lat": -1.9474, "lon": 30.0579, "population": 1208000, "note": null}], "otherCities": []}, {"country": "Saint Kitts and Nevis", "capitals": [{"name": "Basseterre", "lat": 17.2948, "lon": -62.7261, "population": 14434, "note": null}], "otherCities": []}, {"country": "Saint Lucia", "capitals": [{"name": "Castries", "lat": 14.006, "lon": -60.991, "population": 22258, "note": null}], "otherCities": []}, {"country": "Saint Vincent and the Grenadines", "capitals": [{"name": "Kingstown", "lat": 13.1587, "lon": -61.2248, "population": 26636, "note": null}], "otherCities": []}, {"country": "Samoa", "capitals": [{"name": "Apia", "lat": -13.8333, "lon": -171.7667, "population": 36066, "note": null}], "otherCities": []}, {"country": "San Marino", "capitals": [{"name": "San Marino", "lat": 43.9333, "lon": 12.45, "population": 4465, "note": null}], "otherCities": []}, {"country": "Sao Tome and Principe", "capitals": [{"name": "São Tomé", "lat": 0.3365, "lon": 6.7273, "population": 80000, "note": null}], "otherCities": []}, {"country": "Saudi Arabia", "capitals": [{"name": "Riyadh", "lat": 24.6905, "lon": 46.7096, "population": 7682000, "note": null}], "otherCities": [{"name": "Jeddah", "population": 4863000}, {"name": "Mecca", "population": 2150000}]}, {"country": "Senegal", "capitals": [{"name": "Dakar", "lat": 14.6937, "lon": -17.4441, "population": 3326000, "note": null}], "otherCities": []}, {"country": "Serbia", "capitals": [{"name": "Belgrade", "lat": 44.8176, "lon": 20.4633, "population": 1405000, "note": null}], "otherCities": []}, {"country": "Seychelles", "capitals": [{"name": "Victoria", "lat": -4.6167, "lon": 55.45, "population": 28091, "note": null}], "otherCities": []}, {"country": "Sierra Leone", "capitals": [{"name": "Freetown", "lat": 8.484, "lon": -13.2299, "population": 1272000, "note": null}], "otherCities": []}, {"country": "Singapore", "capitals": [{"name": "Singapore", "lat": 1.2897, "lon": 103.8501, "population": 6081000, "note": null}], "otherCities": []}, {"country": "Slovakia", "capitals": [{"name": "Bratislava", "lat": 48.1482, "lon": 17.1067, "population": 439000, "note": null}], "otherCities": []}, {"country": "Slovenia", "capitals": [{"name": "Ljubljana", "lat": 46.0511, "lon": 14.5051, "population": 286000, "note": null}], "otherCities": []}, {"country": "Solomon Islands", "capitals": [{"name": "Honiara", "lat": -9.4333, "lon": 159.95, "population": 82000, "note": null}], "otherCities": []}, {"country": "Somalia", "capitals": [{"name": "Mogadishu", "lat": 2.0416, "lon": 45.3435, "population": 2610000, "note": null}], "otherCities": [{"name": "Hargeisa", "population": 1127000}]}, {"country": "South Africa", "capitals": [{"name": "Pretoria", "lat": -25.7461, "lon": 28.1881, "population": 2818000, "note": "administrative capital"}, {"name": "Cape Town", "lat": -33.9258, "lon": 18.4232, "population": 4890000, "note": "legislative capital"}, {"name": "Bloemfontein", "lat": -29.0852, "lon": 26.1596, "population": 556000, "note": "judicial capital"}], "otherCities": [{"name": "Johannesburg", "population": 10316000}, {"name": "Durban", "population": 3228000}]}, {"country": "South Sudan", "capitals": [{"name": "Juba", "lat": 4.8517, "lon": 31.5825, "population": 459000, "note": null}], "otherCities": []}, {"country": "Spain", "capitals": [{"name": "Madrid", "lat": 40.4165, "lon": -3.7026, "population": 6751000, "note": null}], "otherCities": [{"name": "Barcelona", "population": 5687000}]}, {"country": "Sri Lanka", "capitals": [{"name": "Sri Jayawardenepura Kotte", "lat": 6.906, "lon": 79.9147, "population": 103000, "note": "legislative capital"}, {"name": "Colombo", "lat": 6.9319, "lon": 79.8478, "population": 633000, "note": "executive & judicial capital"}], "otherCities": []}, {"country": "Sudan", "capitals": [{"name": "Khartoum", "lat": 15.5518, "lon": 32.5324, "population": 6344000, "note": null}], "otherCities": []}, {"country": "Suriname", "capitals": [{"name": "Paramaribo", "lat": 5.8664, "lon": -55.1668, "population": 239000, "note": null}], "otherCities": []}, {"country": "Sweden", "capitals": [{"name": "Stockholm", "lat": 59.3326, "lon": 18.0649, "population": 1659000, "note": null}], "otherCities": []}, {"country": "Switzerland", "capitals": [{"name": "Bern", "lat": 46.9481, "lon": 7.4474, "population": 437000, "note": null}], "otherCities": [{"name": "Zurich", "population": 1420000}]}, {"country": "Syria", "capitals": [{"name": "Damascus", "lat": 33.5086, "lon": 36.3084, "population": 2585000, "note": null}], "otherCities": [{"name": "Aleppo", "population": 2203000}]}, {"country": "Taiwan", "capitals": [{"name": "Taipei", "lat": 25.047, "lon": 121.5457, "population": 2754000, "note": null}], "otherCities": [{"name": "New Taipei City", "population": 4504000}]}, {"country": "Tajikistan", "capitals": [{"name": "Dushanbe", "lat": 38.5358, "lon": 68.7791, "population": 962000, "note": null}], "otherCities": []}, {"country": "Tanzania", "capitals": [{"name": "Dodoma", "lat": -6.1722, "lon": 35.7395, "population": 262000, "note": "legislative capital"}, {"name": "Dar es Salaam", "lat": -6.7924, "lon": 39.2083, "population": 7776000, "note": "administrative capital"}], "otherCities": []}, {"country": "Thailand", "capitals": [{"name": "Bangkok", "lat": 13.722, "lon": 100.5252, "population": 10500000, "note": null}], "otherCities": [{"name": "Chiang Mai", "population": 1200000}]}, {"country": "Timor-Leste", "capitals": [{"name": "Dili", "lat": -8.5601, "lon": 125.5668, "population": 281000, "note": null}], "otherCities": []}, {"country": "Togo", "capitals": [{"name": "Lomé", "lat": 6.1375, "lon": 1.2123, "population": 1926000, "note": null}], "otherCities": []}, {"country": "Tonga", "capitals": [{"name": "Nuku'alofa", "lat": -21.1394, "lon": -175.2032, "population": 22904, "note": null}], "otherCities": []}, {"country": "Trinidad and Tobago", "capitals": [{"name": "Port of Spain", "lat": 10.6662, "lon": -61.5166, "population": 545000, "note": null}], "otherCities": []}, {"country": "Tunisia", "capitals": [{"name": "Tunis", "lat": 36.819, "lon": 10.1658, "population": 2439000, "note": null}], "otherCities": []}, {"country": "Turkey", "capitals": [{"name": "Ankara", "lat": 39.9199, "lon": 32.8543, "population": 5397000, "note": null}], "otherCities": [{"name": "Istanbul", "population": 15848000}, {"name": "Izmir", "population": 3088000}]}, {"country": "Turkmenistan", "capitals": [{"name": "Ashgabat", "lat": 37.95, "lon": 58.3833, "population": 883000, "note": null}], "otherCities": []}, {"country": "Tuvalu", "capitals": [{"name": "Funafuti", "lat": -8.5189, "lon": 179.1991, "population": 7042, "note": null}], "otherCities": []}, {"country": "Uganda", "capitals": [{"name": "Kampala", "lat": 0.3163, "lon": 32.5822, "population": 3652000, "note": null}], "otherCities": []}, {"country": "Ukraine", "capitals": [{"name": "Kyiv", "lat": 50.4454, "lon": 30.5186, "population": 3010000, "note": null}], "otherCities": [{"name": "Kharkiv", "population": 1423000}]}, {"country": "United Arab Emirates", "capitals": [{"name": "Abu Dhabi", "lat": 24.4648, "lon": 54.3618, "population": 1540000, "note": null}], "otherCities": [{"name": "Dubai", "population": 2964000}]}, {"country": "United Kingdom", "capitals": [{"name": "London", "lat": 51.5085, "lon": -0.1257, "population": 9648000, "note": null}], "otherCities": [{"name": "Manchester", "population": 2791000}, {"name": "Birmingham", "population": 2665000}]}, {"country": "United States", "capitals": [{"name": "Washington, D.C.", "lat": 38.8951, "lon": -77.0364, "population": 5490000, "note": null}], "otherCities": [{"name": "New York City", "population": 18937000}, {"name": "Los Angeles", "population": 12534000}]}, {"country": "Uruguay", "capitals": [{"name": "Montevideo", "lat": -34.8335, "lon": -56.1674, "population": 1767000, "note": null}], "otherCities": []}, {"country": "Uzbekistan", "capitals": [{"name": "Tashkent", "lat": 41.2647, "lon": 69.2163, "population": 2574000, "note": null}], "otherCities": []}, {"country": "Vanuatu", "capitals": [{"name": "Port Vila", "lat": -17.7338, "lon": 168.3219, "population": 53000, "note": null}], "otherCities": []}, {"country": "Venezuela", "capitals": [{"name": "Caracas", "lat": 10.488, "lon": -66.8792, "population": 2972000, "note": null}], "otherCities": [{"name": "Maracaibo", "population": 2368000}]}, {"country": "Vietnam", "capitals": [{"name": "Hanoi", "lat": 21.0245, "lon": 105.8412, "population": 5253000, "note": null}], "otherCities": [{"name": "Ho Chi Minh City", "population": 9321000}]}, {"country": "Yemen", "capitals": [{"name": "Sana'a", "lat": 15.3531, "lon": 44.2078, "population": 3182000, "note": null}], "otherCities": [{"name": "Aden", "population": 1045000}]}, {"country": "Zambia", "capitals": [{"name": "Lusaka", "lat": -15.4134, "lon": 28.2771, "population": 3042000, "note": null}], "otherCities": []}, {"country": "Zimbabwe", "capitals": [{"name": "Harare", "lat": -17.8294, "lon": 31.0539, "population": 1558000, "note": null}], "otherCities": []}]
+</script>
+<script>
+(function(){
+  const DATA = JSON.parse(document.getElementById('capitals-data').textContent);
+  const MAX_GUESSES = 6;
+
+  const flatCities = [];
+  DATA.forEach((entry, countryIdx) => {
+    entry.capitals.forEach(cap => {
+      flatCities.push({
+        name: cap.name,
+        country: entry.country,
+        countryIdx,
+        lat: cap.lat,
+        lon: cap.lon,
+        note: cap.note
+      });
+    });
+  });
+  flatCities.sort((a,b) => a.name.localeCompare(b.name));
+
+  const flatCountries = DATA.map((entry, countryIdx) => ({
+    name: entry.country,
+    country: entry.country,
+    countryIdx,
+    lat: entry.capitals[0].lat,
+    lon: entry.capitals[0].lon,
+    capitalName: entry.capitals.map(c => c.name).join(' / '),
+    isCountryGuess: true
+  })).sort((a,b) => a.name.localeCompare(b.name));
+
+  function dayIndex(){
+    const now = new Date();
+    const start = Date.UTC(2024,0,1);
+    const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+    const diffDays = Math.floor((today - start) / 86400000);
+    return ((diffDays % DATA.length) + DATA.length) % DATA.length;
+  }
+  const targetIdx = dayIndex();
+  let target = DATA[targetIdx];
+  let targetPrimary = target.capitals[0];
+  let currentPuzzleLabel = targetIdx + 1;
+
+  document.getElementById('puzzleNum').textContent = '#' + (targetIdx + 1);
+  document.getElementById('todayDate').textContent = new Date().toLocaleDateString(undefined, {weekday:'short', month:'short', day:'numeric'});
+
+  function toRad(d){ return d * Math.PI / 180; }
+  function toDeg(r){ return r * 180 / Math.PI; }
+  function haversine(lat1, lon1, lat2, lon2){
+    const R = 6371;
+    const dLat = toRad(lat2-lat1);
+    const dLon = toRad(lon2-lon1);
+    const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+  // Intuitive flat-map direction from (lat1,lon1) to (lat2,lon2) — i.e. "which way to look on
+  // an ordinary map", not the true great-circle initial bearing (which often points toward a
+  // pole rather than the way most people expect, e.g. Tokyo->London reads as "NNW" on a globe
+  // even though London is west of Tokyo on any map people actually look at).
+  function bearing(lat1, lon1, lat2, lon2){
+    let dLon = lon2 - lon1;
+    if (dLon > 180) dLon -= 360;
+    if (dLon < -180) dLon += 360;
+    const dLat = lat2 - lat1;
+    return (toDeg(Math.atan2(dLon, dLat)) + 360) % 360;
+  }
+  function compassLabel(deg){
+    const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+    return dirs[Math.round(deg / 22.5) % 16];
+  }
+  function fmtNum(n){ return n.toLocaleString('en-GB'); }
+
+  let guesses = [];
+  let finished = false;
+  const guessedNames = new Set();
+  const guessedCountryIdxs = new Set();
+  const MAX_COUNTRY_GUESSES = 3;
+  let countryGuessesRemaining = MAX_COUNTRY_GUESSES;
+  let searchMode = 'capital'; // 'capital' or 'country'
+
+  const input = document.getElementById('searchInput');
+  const dropdown = document.getElementById('dropdown');
+  const guessesList = document.getElementById('guessesList');
+  const attemptsRow = document.getElementById('attemptsRow');
+  const revealZone = document.getElementById('revealZone');
+  const lastGuessWarning = document.getElementById('lastGuessWarning');
+  const capModeBtn = document.getElementById('capModeBtn');
+  const countryModeBtn = document.getElementById('countryModeBtn');
+  const countryModeCount = document.getElementById('countryModeCount');
+
+  const LOCK_THRESHOLD = 3; // country search unlocks once this many guesses remain
+
+  function countryModeLocked(){
+    return (MAX_GUESSES - guesses.length) > LOCK_THRESHOLD;
+  }
+
+  function renderModeUI(){
+    const locked = countryModeLocked();
+    countryModeCount.textContent = locked ? `(unlocks with ${LOCK_THRESHOLD} guesses left)` : '';
+    countryModeBtn.disabled = finished || countryGuessesRemaining <= 0 || locked;
+    capModeBtn.classList.toggle('active', searchMode === 'capital');
+    countryModeBtn.classList.toggle('active', searchMode === 'country');
+  }
+
+  function setMode(mode){
+    if(finished) return;
+    if(mode === 'country' && (countryGuessesRemaining <= 0 || countryModeLocked())) return;
+    searchMode = mode;
+    input.value = '';
+    dropdown.style.display = 'none';
+    input.placeholder = mode === 'country' ? 'Type a country name…' : 'Type a capital city…';
+    renderModeUI();
+    input.focus();
+  }
+  capModeBtn.addEventListener('click', () => setMode('capital'));
+  countryModeBtn.addEventListener('click', () => setMode('country'));
+
+  function renderAttempts(){
+    attemptsRow.innerHTML = '';
+    for(let i = 0; i < MAX_GUESSES; i++){
+      const d = document.createElement('div');
+      d.className = 'dot';
+      if(guesses[i]){
+        d.classList.add(guesses[i].correct ? 'used-correct' : 'used-miss');
+      }
+      attemptsRow.appendChild(d);
+    }
+  }
+
+  function renderLastGuessWarning(){
+    const onFinalGuess = !finished && guesses.length === MAX_GUESSES - 1;
+    lastGuessWarning.classList.toggle('show', onFinalGuess);
+  }
+
+  function currentList(){
+    return searchMode === 'country' ? flatCountries : flatCities;
+  }
+  function notYetGuessed(item){
+    return !guessedCountryIdxs.has(item.countryIdx);
+  }
+
+  function renderDropdown(query){
+    const q = query.trim().toLowerCase();
+    if(!q){ dropdown.style.display = 'none'; return; }
+    const matches = currentList()
+      .filter(c => notYetGuessed(c) && c.name.toLowerCase().includes(q))
+      .slice(0, 8);
+    dropdown.innerHTML = '';
+    if(matches.length === 0){
+      dropdown.innerHTML = `<div class="dropdown-empty">No matching ${searchMode === 'country' ? 'country' : 'capital'} found</div>`;
+      dropdown.style.display = 'block';
+      return;
+    }
+    matches.forEach((c, i) => {
+      const item = document.createElement('div');
+      item.className = 'dropdown-item' + (i === 0 ? ' active' : '');
+      item.innerHTML = searchMode === 'country'
+        ? `<span class="city">${c.name}</span><span class="country">Capital: ${c.capitalName}</span>`
+        : `<span class="city">${c.name}</span><span class="country">${c.country}</span>`;
+      item.addEventListener('mousedown', (e) => { e.preventDefault(); submitGuess(c); });
+      dropdown.appendChild(item);
+    });
+    dropdown.style.display = 'block';
+  }
+
+  input.addEventListener('input', () => renderDropdown(input.value));
+  input.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter'){
+      const q = input.value.trim().toLowerCase();
+      if(!q) return;
+      const list = currentList();
+      const match = list.find(c => notYetGuessed(c) && c.name.toLowerCase() === q)
+        || list.find(c => notYetGuessed(c) && c.name.toLowerCase().includes(q));
+      if(match) submitGuess(match);
+    } else if(e.key === 'Escape'){
+      dropdown.style.display = 'none';
+    }
+  });
+  document.addEventListener('click', (e) => {
+    if(!document.getElementById('searchBox').contains(e.target)) dropdown.style.display = 'none';
+  });
+
+  function submitGuess(item){
+    if(finished) return;
+    const isCountryGuess = !!item.isCountryGuess;
+    guessedNames.add(item.name);
+    guessedCountryIdxs.add(item.countryIdx);
+    if(isCountryGuess) countryGuessesRemaining--;
+
+    const dist = haversine(item.lat, item.lon, targetPrimary.lat, targetPrimary.lon);
+    const brng = bearing(item.lat, item.lon, targetPrimary.lat, targetPrimary.lon);
+    const correct = item.countryIdx === target._idx;
+    const proximity = correct ? 100 : Math.max(0, 100 * (1 - dist / 20015));
+
+    guesses.push({ city: item, dist, brng, correct, proximity, isCountryGuess });
+    input.value = '';
+    dropdown.style.display = 'none';
+    renderGuesses();
+    renderAttempts();
+    renderLastGuessWarning();
+
+    if(searchMode === 'country' && countryGuessesRemaining <= 0 && !correct){
+      setMode('capital');
+    } else {
+      renderModeUI();
+    }
+
+    if(correct || guesses.length >= MAX_GUESSES){
+      finish(correct);
+    }
+  }
+
+  function renderGuesses(){
+    guessesList.innerHTML = '';
+    guesses.forEach((g, i) => {
+      const row = document.createElement('div');
+      row.className = 'guess-row' + (g.correct ? ' correct' : '');
+      const arrowSvg = `<svg viewBox="0 0 24 24" fill="none" style="transform:rotate(${g.correct ? 0 : g.brng}deg)">
+        <path d="M12 3 L12 19 M12 3 L6 9 M12 3 L18 9" stroke="${g.correct ? '#1f9d6b' : '#123a5e'}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`;
+      row.innerHTML = `
+        <div class="guess-num">${i+1}</div>
+        <div class="guess-city">
+          ${g.isCountryGuess
+            ? `<div class="name">${g.city.capitalName}</div><div class="ctry">${g.city.country}</div>`
+            : `<div class="name">${g.city.name}</div><div class="ctry">${g.city.country}</div>`}
+        </div>
+        <div class="guess-dist">
+          ${g.correct ? '<span class="correct-mark">CORRECT ✓</span>' : `${Math.round(g.dist).toLocaleString('en-GB')} km<small>${compassLabel(g.brng)}</small>`}
+        </div>
+        <div class="guess-arrow">${g.correct ? '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#1f9d6b" stroke-width="2"/><path d="M7 12l3 3 7-7" stroke="#1f9d6b" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>' : arrowSvg}</div>
+        <div class="proximity-bar"><div class="proximity-fill" style="width:${g.proximity}%"></div></div>
+      `;
+      guessesList.appendChild(row);
+    });
+  }
+
+  function cityLineHtml(cap){
+    const note = cap.note ? `<span class="cnote">${cap.note}</span>` : '';
+    return `<div class="city-line"><span class="cname">${cap.name}${note}</span><span class="cpop">${fmtNum(cap.population)}</span></div>`;
+  }
+
+  function finish(won){
+    finished = true;
+    input.disabled = true;
+    input.placeholder = won ? "Solved — try a practice round below" : "Out of guesses — try a practice round below";
+    renderModeUI();
+    renderLastGuessWarning();
+
+    let html = `<div class="reveal ${won ? 'result-win' : 'result-loss'}">
+      <div class="reveal-status">${won ? 'Solved in ' + guesses.length + (guesses.length === 1 ? ' guess' : ' guesses') : 'Not this time'}</div>
+      <div class="reveal-country">${target.capitals.map(c=>c.name).join(' / ')}</div>
+      <div class="reveal-subtitle">${target.country}</div>
+      <div class="reveal-section">
+        <h4>Capital${target.capitals.length > 1 ? 's' : ''} &amp; population</h4>
+        ${target.capitals.map(cityLineHtml).join('')}
+      </div>`;
+
+    if(target.otherCities && target.otherCities.length){
+      html += `<div class="reveal-section">
+        <h4>Other large cities in ${target.country}</h4>
+        ${target.otherCities.map(o => `<div class="city-line"><span class="cname">${o.name}</span><span class="cpop">${fmtNum(o.population)}</span></div>`).join('')}
+      </div>`;
+    }
+
+    html += `<div class="reveal-note">Puzzle #${currentPuzzleLabel} of ${DATA.length} possible capitals. A new capital is chosen automatically each day — come back tomorrow for the next one.</div>
+      <button class="next-btn" id="practiceBtn">Play a practice round</button>
+    </div>`;
+
+    revealZone.innerHTML = html;
+    document.getElementById('practiceBtn').addEventListener('click', startPractice);
+  }
+
+  function startPractice(){
+    let idx;
+    do { idx = Math.floor(Math.random() * DATA.length); } while (idx === target._idx && DATA.length > 1);
+    resetGame(idx);
+  }
+
+  function resetGame(idx){
+    guesses = [];
+    finished = false;
+    guessedNames.clear();
+    guessedCountryIdxs.clear();
+    countryGuessesRemaining = MAX_COUNTRY_GUESSES;
+    searchMode = 'capital';
+    input.disabled = false;
+    input.value = '';
+    input.placeholder = 'Type a capital city…';
+    revealZone.innerHTML = '';
+    renderGuesses();
+    renderAttempts();
+    renderLastGuessWarning();
+    renderModeUI();
+    target = DATA[idx];
+    target._idx = idx;
+    targetPrimary = target.capitals[0];
+    currentPuzzleLabel = 'practice';
+    document.getElementById('puzzleNum').textContent = 'PRACTICE';
+    input.focus();
+  }
+
+  DATA.forEach((d,i) => d._idx = i);
+  target._idx = targetIdx;
+
+  renderAttempts();
+  renderLastGuessWarning();
+  renderGuesses();
+  renderModeUI();
+})();
+</script>
+</body>
+</html>
