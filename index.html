@@ -236,6 +236,11 @@
     border-color:#c1502f;
     box-shadow:0 0 0 1px rgba(193,80,47,0.15);
   }
+  .correct-banner{
+    font-family:'Fraunces',serif;font-weight:700;font-size:38px;
+    color:var(--correct);text-align:center;margin:-4px 0 12px;
+    letter-spacing:0.5px;
+  }
   .reveal-status{
     font-family:'IBM Plex Mono',monospace;
     font-size:12px;letter-spacing:1px;text-transform:uppercase;
@@ -567,6 +572,7 @@
     renderLastGuessWarning();
 
     let html = `<div class="reveal ${won ? 'result-win' : 'result-loss'}">
+      ${won ? '<div class="correct-banner">Correct!</div>' : ''}
       <div class="reveal-status">${won ? 'Solved in ' + guesses.length + (guesses.length === 1 ? ' guess' : ' guesses') : 'Not this time'}</div>
       <div class="reveal-country">${target.capitals.map(c=>c.name).join(' / ')}</div>
       <div class="reveal-subtitle">${target.country}</div>
