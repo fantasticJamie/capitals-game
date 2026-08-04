@@ -3,7 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Meridian — Daily Capital</title>
+<title>Meridian — Daily Capital City Guessing Game</title>
+<meta name="description" content="Guess the world capital city of the day in 6 tries. Get a distance and compass-direction clue after every guess, search by country if you're stuck, and learn each capital's population along the way. A free daily geography game, updated every day.">
+<meta name="keywords" content="capital city game, daily geography game, guess the capital, wordle capital cities, world capitals quiz, geography puzzle">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#123a5e">
+<link rel="canonical" href="https://your-domain-here.com/">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Meridian — Daily Capital City Guessing Game">
+<meta property="og:description" content="Guess the world capital city of the day in 6 tries. Distance and direction clues, a country-search assist, and a population reveal at the end.">
+<meta property="og:url" content="https://your-domain-here.com/">
+<meta property="og:site_name" content="Meridian">
+
+<!-- Twitter card -->
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Meridian — Daily Capital City Guessing Game">
+<meta name="twitter:description" content="Guess the world capital city of the day in 6 tries, with distance and direction clues.">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Ccircle cx='30' cy='30' r='27' fill='%23eaf3f1' stroke='%23123a5e' stroke-width='2'/%3E%3Ccircle cx='30' cy='30' r='21' stroke='%231f9d6b' stroke-width='1.5' fill='none'/%3E%3Cpath d='M30 8 L34 30 L30 52 L26 30 Z' fill='%23123a5e'/%3E%3Cpath d='M8 30 L30 26 L52 30 L30 34 Z' fill='%231f9d6b' opacity='0.6'/%3E%3C/svg%3E">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -52,6 +72,10 @@
     font-size:13px;
     color:var(--ink-soft);
     letter-spacing:0.3px;
+  }
+  .intro-blurb{
+    font-size:13px;line-height:1.55;color:var(--ink-soft);
+    margin:2px 0 16px;max-width:52ch;
   }
   .meta-row{
     display:flex;justify-content:space-between;align-items:baseline;
@@ -144,7 +168,7 @@
   .dot.used-miss{background:var(--miss);}
 
   /* guess rows */
-  .guesses{display:flex;flex-direction:column;gap:10px;margin-bottom:22px;}
+  .guesses{display:flex;flex-direction:column-reverse;gap:10px;margin-bottom:22px;}
   .guess-row{
     background:#fbf6ea;
     border:1px solid var(--line);
@@ -199,14 +223,16 @@
     border-radius:var(--radius);
     background:#fbf6ea;
     padding:20px 22px;
-    margin-top:6px;
+    margin:6px 0 22px;
     transition:box-shadow 0.4s ease, border-color 0.4s ease;
   }
   .reveal.result-win{
+    border-width:4px;
     border-color:var(--correct);
     box-shadow:0 0 22px 5px rgba(31,157,107,0.45);
   }
   .reveal.result-loss{
+    border-width:4px;
     border-color:#c1502f;
     box-shadow:0 0 0 1px rgba(193,80,47,0.15);
   }
@@ -237,12 +263,6 @@
   .city-line .cnote{font-size:11.5px;color:var(--ink-soft);font-style:italic;margin-left:6px;}
   .city-line .cpop{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--ink);}
   .reveal-note{font-size:12.5px;color:var(--ink-soft);margin-top:10px;line-height:1.5;}
-  .next-btn{
-    margin-top:16px;width:100%;padding:12px;border-radius:var(--radius);
-    border:1.5px solid var(--ink);background:var(--ink);color:var(--paper);
-    font-family:'Inter',sans-serif;font-weight:600;font-size:14px;cursor:pointer;
-  }
-  .next-btn:hover{background:#33405c;}
   .footnote{
     text-align:center;font-size:11px;color:var(--ink-soft);margin-top:24px;line-height:1.6;
   }
@@ -266,10 +286,14 @@
     </div>
   </div>
 
+  <p class="intro-blurb">Guess the world capital in 6 tries. Each guess gives you a distance and direction clue. Country search unlocks after 3 guesses if you're stuck.</p>
+
   <div class="meta-row">
     <span>PUZZLE <b id="puzzleNum">—</b></span>
     <span id="todayDate">—</span>
   </div>
+
+  <div id="revealZone"></div>
 
   <div class="attempts" id="attemptsRow"></div>
 
@@ -287,8 +311,6 @@
   </div>
 
   <div class="guesses" id="guessesList"></div>
-
-  <div id="revealZone"></div>
 
   <div class="footnote">Distance is measured great-circle, arrow points from your guess toward today's capital. Populations are approximate, most recent estimates. Countries with more than one official capital accept any of them.</div>
 
@@ -540,7 +562,7 @@
   function finish(won){
     finished = true;
     input.disabled = true;
-    input.placeholder = won ? "Solved — try a practice round below" : "Out of guesses — try a practice round below";
+    input.placeholder = won ? "Solved — come back tomorrow" : "Out of guesses — come back tomorrow";
     renderModeUI();
     renderLastGuessWarning();
 
@@ -561,40 +583,10 @@
     }
 
     html += `<div class="reveal-note">Puzzle #${currentPuzzleLabel} of ${DATA.length} possible capitals. A new capital is chosen automatically each day — come back tomorrow for the next one.</div>
-      <button class="next-btn" id="practiceBtn">Play a practice round</button>
     </div>`;
 
     revealZone.innerHTML = html;
-    document.getElementById('practiceBtn').addEventListener('click', startPractice);
-  }
-
-  function startPractice(){
-    let idx;
-    do { idx = Math.floor(Math.random() * DATA.length); } while (idx === target._idx && DATA.length > 1);
-    resetGame(idx);
-  }
-
-  function resetGame(idx){
-    guesses = [];
-    finished = false;
-    guessedNames.clear();
-    guessedCountryIdxs.clear();
-    countryGuessesRemaining = MAX_COUNTRY_GUESSES;
-    searchMode = 'capital';
-    input.disabled = false;
-    input.value = '';
-    input.placeholder = 'Type a capital city…';
-    revealZone.innerHTML = '';
-    renderGuesses();
-    renderAttempts();
-    renderLastGuessWarning();
-    renderModeUI();
-    target = DATA[idx];
-    target._idx = idx;
-    targetPrimary = target.capitals[0];
-    currentPuzzleLabel = 'practice';
-    document.getElementById('puzzleNum').textContent = 'PRACTICE';
-    input.focus();
+    revealZone.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   DATA.forEach((d,i) => d._idx = i);
