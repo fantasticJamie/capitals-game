@@ -88,20 +88,40 @@
     letter-spacing:0.4px;
   }
   .meta-row b{color:var(--ink);}
+  .practice-row{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+  .practice-label{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--ink-soft);}
+  .switch{position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0;}
+  .switch input{opacity:0;width:0;height:0;}
+  .slider{
+    position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;
+    background-color:var(--line);transition:0.3s;border-radius:24px;
+  }
+  .slider:before{
+    position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;
+    background-color:#fff;transition:0.3s;border-radius:50%;
+    box-shadow:0 1px 3px rgba(0,0,0,0.25);
+  }
+  .switch input:checked + .slider{background-color:var(--brass);}
+  .switch input:checked + .slider:before{transform:translateX(18px);}
 
   /* search / combobox */
   .search-box{position:relative;margin-bottom:18px;}
   .mode-row{
-    display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;
+    display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;flex-wrap:wrap;
   }
+  .mode-btn-group{display:flex;flex-direction:column;align-items:center;gap:5px;}
   .mode-btn{
     font-family:'IBM Plex Mono',monospace;font-size:12.5px;
     padding:9px 14px;border-radius:8px;border:1.5px solid var(--ink);
     background:transparent;color:var(--ink);cursor:pointer;
-    letter-spacing:0.3px;
+    letter-spacing:0.3px;min-width:172px;text-align:center;
     transition:box-shadow 0.3s ease, background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
   }
   .mode-btn.active{background:var(--ink);color:var(--paper);}
+  .mode-sublabel{
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-soft);
+    text-align:center;min-height:13px;
+  }
 
   /* country-search button: greyed out while locked, flashing green to invite a click once available */
   .mode-btn.country-mode{
@@ -268,6 +288,12 @@
   .city-line .cnote{font-size:11.5px;color:var(--ink-soft);font-style:italic;margin-left:6px;}
   .city-line .cpop{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--ink);}
   .reveal-note{font-size:12.5px;color:var(--ink-soft);margin-top:10px;line-height:1.5;}
+  .next-btn{
+    margin-top:16px;width:100%;padding:12px;border-radius:var(--radius);
+    border:1.5px solid var(--ink);background:var(--ink);color:var(--paper);
+    font-family:'Inter',sans-serif;font-weight:600;font-size:14px;cursor:pointer;
+  }
+  .next-btn:hover{background:#1c4d78;}
   .footnote{
     text-align:center;font-size:11px;color:var(--ink-soft);margin-top:24px;line-height:1.6;
   }
@@ -298,13 +324,26 @@
     <span id="todayDate">—</span>
   </div>
 
+  <div class="practice-row">
+    <label class="switch">
+      <input type="checkbox" id="practiceToggle">
+      <span class="slider"></span>
+    </label>
+    <span class="practice-label">Practice mode — unlimited random rounds</span>
+  </div>
+
   <div id="revealZone"></div>
 
   <div class="attempts" id="attemptsRow"></div>
 
   <div class="mode-row" id="modeRow">
-    <button class="mode-btn active" id="capModeBtn">Search capitals</button>
-    <button class="mode-btn country-mode" id="countryModeBtn">🌍 Search countries instead <span id="countryModeCount"></span></button>
+    <div class="mode-btn-group">
+      <button class="mode-btn active" id="capModeBtn">Search capitals</button>
+    </div>
+    <div class="mode-btn-group">
+      <button class="mode-btn country-mode" id="countryModeBtn">🌍 Search countries</button>
+      <span class="mode-sublabel" id="countryModeCount"></span>
+    </div>
   </div>
 
   <div class="last-guess-warning" id="lastGuessWarning">⚠ Last guess! ⚠</div>
@@ -396,6 +435,7 @@
 
   let guesses = [];
   let finished = false;
+  let practiceMode = false;
   const guessedNames = new Set();
   const guessedCountryIdxs = new Set();
   const MAX_COUNTRY_GUESSES = 3;
@@ -411,6 +451,7 @@
   const capModeBtn = document.getElementById('capModeBtn');
   const countryModeBtn = document.getElementById('countryModeBtn');
   const countryModeCount = document.getElementById('countryModeCount');
+  const practiceToggle = document.getElementById('practiceToggle');
 
   const LOCK_THRESHOLD = 3; // country search unlocks once this many guesses remain
 
@@ -567,7 +608,9 @@
   function finish(won){
     finished = true;
     input.disabled = true;
-    input.placeholder = won ? "Solved — come back tomorrow" : "Out of guesses — come back tomorrow";
+    input.placeholder = won
+      ? (practiceMode ? "Solved!" : "Solved — come back tomorrow")
+      : (practiceMode ? "Out of guesses" : "Out of guesses — come back tomorrow");
     renderModeUI();
     renderLastGuessWarning();
 
@@ -588,12 +631,58 @@
       </div>`;
     }
 
-    html += `<div class="reveal-note">Puzzle #${currentPuzzleLabel} of ${DATA.length} possible capitals. A new capital is chosen automatically each day — come back tomorrow for the next one.</div>
-    </div>`;
+    if(practiceMode){
+      html += `<div class="reveal-note">Practice round. Turn off practice mode at the top to go back to today's puzzle.</div>
+      <button class="next-btn" id="practiceBtn">New practice round</button>
+      </div>`;
+    } else {
+      html += `<div class="reveal-note">Puzzle #${currentPuzzleLabel} of ${DATA.length} possible capitals. A new capital is chosen automatically each day — come back tomorrow for the next one.</div>
+      </div>`;
+    }
 
     revealZone.innerHTML = html;
     revealZone.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    if(practiceMode){
+      document.getElementById('practiceBtn').addEventListener('click', () => {
+        const idx = Math.floor(Math.random() * DATA.length);
+        resetGame(idx, true);
+      });
+    }
   }
+
+  function resetGame(idx, practice){
+    guesses = [];
+    finished = false;
+    guessedNames.clear();
+    guessedCountryIdxs.clear();
+    countryGuessesRemaining = MAX_COUNTRY_GUESSES;
+    searchMode = 'capital';
+    input.disabled = false;
+    input.value = '';
+    input.placeholder = 'Type a capital city…';
+    revealZone.innerHTML = '';
+    target = DATA[idx];
+    target._idx = idx;
+    targetPrimary = target.capitals[0];
+    currentPuzzleLabel = practice ? 'practice' : (targetIdx + 1);
+    document.getElementById('puzzleNum').textContent = practice ? 'PRACTICE' : ('#' + (targetIdx + 1));
+    renderGuesses();
+    renderAttempts();
+    renderLastGuessWarning();
+    renderModeUI();
+    input.focus();
+  }
+
+  practiceToggle.addEventListener('change', () => {
+    practiceMode = practiceToggle.checked;
+    if(practiceMode){
+      const idx = Math.floor(Math.random() * DATA.length);
+      resetGame(idx, true);
+    } else {
+      resetGame(targetIdx, false);
+    }
+  });
 
   DATA.forEach((d,i) => d._idx = i);
   target._idx = targetIdx;
