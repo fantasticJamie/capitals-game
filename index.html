@@ -7,7 +7,7 @@
 <meta name="description" content="Guess the world capital city of the day in 6 tries. Get a distance and compass-direction clue after every guess, search by country if you're stuck, and learn each capital's population along the way. A free daily geography game, updated every day.">
 <meta name="keywords" content="capital city game, daily geography game, guess the capital, wordle capital cities, world capitals quiz, geography puzzle">
 <meta name="robots" content="index, follow">
-<meta name="theme-color" content="#123a5e">
+<meta name="theme-color" content="#0a2540">
 <link rel="canonical" href="https://guessthecapital.com/">
 
 <!-- Open Graph -->
@@ -22,33 +22,35 @@
 <meta name="twitter:title" content="Guess The Capital — Daily Capital City Guessing Game">
 <meta name="twitter:description" content="Guess the world capital city of the day in 6 tries, with distance and direction clues.">
 
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Ccircle cx='30' cy='30' r='27' fill='%23eaf3f1' stroke='%23123a5e' stroke-width='2'/%3E%3Ccircle cx='30' cy='30' r='21' stroke='%231f9d6b' stroke-width='1.5' fill='none'/%3E%3Cpath d='M30 8 L34 30 L30 52 L26 30 Z' fill='%23123a5e'/%3E%3Cpath d='M8 30 L30 26 L52 30 L30 34 Z' fill='%231f9d6b' opacity='0.6'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Ccircle cx='30' cy='30' r='27' fill='%23dff3ee' stroke='%230a3a63' stroke-width='2'/%3E%3Ccircle cx='30' cy='30' r='21' stroke='%230fb374' stroke-width='1.5' fill='none'/%3E%3Cpath d='M30 8 L34 30 L30 52 L26 30 Z' fill='%230a3a63'/%3E%3Cpath d='M8 30 L30 26 L52 30 L30 34 Z' fill='%230fb374' opacity='0.6'/%3E%3C/svg%3E">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --paper: #eaf3f1;
-    --paper-dark: #d9ebe6;
-    --ink: #123a5e;
-    --ink-soft: #4d7088;
-    --brass: #1f9d6b;
-    --brass-light: #3fc088;
-    --teal: #1f7a9c;
-    --correct: #1f9d6b;
-    --miss: #3a5c78;
-    --line: #bcd7d0;
+    --paper: #0a2540;
+    --paper-dark: #c8ebe0;
+    --page-text: #dff3ee;
+    --page-text-soft: #8fd0c4;
+    --ink: #0a3a63;
+    --ink-soft: #1a6ea8;
+    --brass: #0c8f5f;
+    --brass-light: #38e69c;
+    --teal: #0a6f9e;
+    --correct: #0c8f5f;
+    --miss: #4fa8e0;
+    --line: #7ed9c4;
     --radius: 10px;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
     background:
-      radial-gradient(circle at 12% 8%, rgba(31,157,107,0.08), transparent 40%),
-      radial-gradient(circle at 88% 92%, rgba(31,122,156,0.10), transparent 45%),
+      radial-gradient(circle at 12% 8%, rgba(15,179,116,0.22), transparent 40%),
+      radial-gradient(circle at 88% 92%, rgba(14,132,184,0.26), transparent 45%),
       var(--paper);
-    color:var(--ink);
+    color:var(--page-text);
     font-family:'Inter',sans-serif;
     min-height:100vh;
     padding: 28px 16px 60px;
@@ -65,16 +67,16 @@
     font-size:28px;
     letter-spacing:0.3px;
     margin:0;
-    color:var(--ink);
+    color:var(--page-text);
   }
   .titles p{
     margin:2px 0 0;
     font-size:13px;
-    color:var(--ink-soft);
+    color:var(--page-text-soft);
     letter-spacing:0.3px;
   }
   .intro-blurb{
-    font-size:13px;line-height:1.55;color:var(--ink-soft);
+    font-size:13px;line-height:1.55;color:var(--page-text-soft);
     margin:2px 0 16px;max-width:52ch;
   }
   .meta-row{
@@ -84,12 +86,12 @@
     border-bottom:1px solid var(--line);
     font-family:'IBM Plex Mono',monospace;
     font-size:12px;
-    color:var(--ink-soft);
+    color:var(--page-text-soft);
     letter-spacing:0.4px;
   }
-  .meta-row b{color:var(--ink);}
+  .meta-row b{color:var(--page-text);}
   .practice-row{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
-  .practice-label{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--ink-soft);}
+  .practice-label{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--page-text-soft);}
   .switch{position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0;}
   .switch input{opacity:0;width:0;height:0;}
   .slider{
@@ -114,22 +116,22 @@
     width:130px;
     font-family:'IBM Plex Mono',monospace;font-size:11.5px;
     padding:5px 9px;border:1.5px solid var(--line);border-radius:7px;
-    background:transparent;color:var(--ink-soft);outline:none;
+    background:transparent;color:var(--page-text-soft);outline:none;
   }
-  .peek-input::placeholder{color:var(--ink-soft);}
-  .peek-input:focus{border-color:var(--brass);color:var(--ink);}
+  .peek-input::placeholder{color:var(--page-text-soft);}
+  .peek-input:focus{border-color:var(--brass);color:var(--page-text);}
   .peek-input:disabled{opacity:0.4;cursor:not-allowed;}
   /* flash green once unlocked, inviting a click — stops flashing once focused/typed in */
   .peek-input:not(:disabled):not(:focus){
     animation:peek-glow 1s ease-in-out infinite;
   }
   @keyframes peek-glow{
-    0%,100%{border-color:var(--brass); box-shadow:0 0 3px 1px rgba(31,157,107,0.18);}
-    50%{border-color:var(--brass-light); box-shadow:0 0 14px 4px rgba(57,224,143,0.6);}
+    0%,100%{border-color:var(--brass); box-shadow:0 0 3px 1px rgba(15,179,116,0.18);}
+    50%{border-color:var(--brass-light); box-shadow:0 0 14px 4px rgba(56,230,156,0.6);}
   }
   .peek-results{
     position:absolute;top:calc(100% + 6px);right:0;min-width:210px;
-    background:#fbf6ea;border:1.5px solid var(--ink);border-radius:8px;
+    background:#d4f7e4;border:1.5px solid var(--ink);border-radius:8px;
     box-shadow:0 8px 24px rgba(33,42,61,0.18);
     padding:6px;display:flex;flex-direction:column;gap:3px;
     z-index:25;
@@ -152,11 +154,11 @@
     padding:14px 44px 14px 16px;
     border:1.5px solid var(--ink);
     border-radius:var(--radius);
-    background:#fbf6ea;
+    background:#ffffff;
     color:var(--ink);
     outline:none;
   }
-  .search-input:focus{border-color:var(--brass);box-shadow:0 0 0 3px rgba(31,157,107,0.15);}
+  .search-input:focus{border-color:var(--brass);box-shadow:0 0 0 3px rgba(15,179,116,0.15);}
   .search-input:disabled{opacity:0.55;}
   .search-icon{
     position:absolute;right:14px;top:50%;transform:translateY(-50%);
@@ -164,7 +166,7 @@
   }
   .dropdown{
     position:absolute;top:calc(100% + 6px);left:0;right:0;
-    background:#fbf6ea;
+    background:#d4f7e4;
     border:1.5px solid var(--ink);
     border-radius:var(--radius);
     max-height:260px;overflow-y:auto;
@@ -178,7 +180,7 @@
     font-size:14.5px;
   }
   .dropdown-item:last-child{border-bottom:none;}
-  .dropdown-item:hover, .dropdown-item.active{background:rgba(31,157,107,0.14);}
+  .dropdown-item:hover, .dropdown-item.active{background:rgba(15,179,116,0.14);}
   .dropdown-item .city{font-weight:600;color:var(--ink);}
   .dropdown-item .country{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-soft);}
   .dropdown-empty{padding:14px 16px;font-size:13px;color:var(--ink-soft);font-style:italic;}
@@ -192,7 +194,7 @@
   /* guess rows */
   .guesses{display:flex;flex-direction:column-reverse;gap:10px;margin-bottom:22px;}
   .guess-row{
-    background:#fbf6ea;
+    background:#ffffff;
     border:1px solid var(--line);
     border-radius:var(--radius);
     padding:12px 14px;
@@ -202,7 +204,7 @@
     gap:12px;
     animation:pop 0.28s ease;
   }
-  .guess-row.correct{border-color:var(--correct);background:rgba(31,157,107,0.08);}
+  .guess-row.correct{border-color:var(--correct);background:#c5f0d8;}
   @keyframes pop{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
 
   /* confetti: fires once on a genuine win, in the site's own palette */
@@ -226,7 +228,7 @@
   .guess-city .ctry{font-size:11.5px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;}
   .last-guess-warning{
     font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;
-    letter-spacing:0.6px;text-transform:uppercase;color:#c62828;
+    letter-spacing:0.6px;text-transform:uppercase;color:#ff7a68;
     margin-bottom:8px;display:none;
   }
   .last-guess-warning.show{display:block;animation:flash-warning 0.9s ease-in-out infinite;}
@@ -255,7 +257,7 @@
   .reveal{
     border:1.5px solid var(--ink);
     border-radius:var(--radius);
-    background:#fbf6ea;
+    background:#d4f7e4;
     padding:20px 22px;
     margin:6px 0 22px;
     transition:box-shadow 0.4s ease, border-color 0.4s ease;
@@ -263,7 +265,7 @@
   .reveal.result-win{
     border-width:4px;
     border-color:var(--correct);
-    box-shadow:0 0 22px 5px rgba(31,157,107,0.45);
+    box-shadow:0 0 22px 5px rgba(15,179,116,0.45);
   }
   .reveal.result-loss{
     border-width:4px;
@@ -304,19 +306,19 @@
   .reveal-note{font-size:12.5px;color:var(--ink-soft);margin-top:10px;line-height:1.5;}
   .next-btn{
     margin-top:16px;width:100%;padding:12px;border-radius:var(--radius);
-    border:1.5px solid var(--ink);background:var(--ink);color:var(--paper);
+    border:1.5px solid var(--ink);background:var(--ink);color:#dff3ee;
     font-family:'Inter',sans-serif;font-weight:600;font-size:14px;cursor:pointer;
   }
-  .next-btn:hover{background:#1c4d78;}
+  .next-btn:hover{background:#135f8c;}
   .reset-link{
     background:none;border:none;padding:0;margin-top:6px;display:inline-block;
     font-family:'IBM Plex Mono',monospace;font-size:9.5px;
-    color:var(--ink-soft);opacity:0.3;text-decoration:none;cursor:pointer;
+    color:var(--page-text-soft);opacity:0.3;text-decoration:none;cursor:pointer;
     transition:opacity 0.2s ease;
   }
   .reset-link:hover, .reset-link:focus{opacity:0.85;text-decoration:underline;}
   .footnote{
-    text-align:center;font-size:11px;color:var(--ink-soft);margin-top:24px;line-height:1.6;
+    text-align:center;font-size:11px;color:var(--page-text-soft);margin-top:24px;line-height:1.6;
   }
 </style>
 </head>
@@ -326,12 +328,12 @@
 
   <div class="header">
     <svg class="compass" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="30" cy="30" r="27" stroke="#123a5e" stroke-width="1.5"/>
-      <circle cx="30" cy="30" r="21" stroke="#1f9d6b" stroke-width="1"/>
-      <path d="M30 8 L34 30 L30 52 L26 30 Z" fill="#123a5e"/>
-      <path d="M8 30 L30 26 L52 30 L30 34 Z" fill="#1f9d6b" opacity="0.6"/>
-      <circle cx="30" cy="30" r="3" fill="#1f9d6b"/>
-      <text x="30" y="7" font-size="6" fill="#123a5e" text-anchor="middle" font-family="IBM Plex Mono, monospace">N</text>
+      <circle cx="30" cy="30" r="27" stroke="#dff3ee" stroke-width="1.5"/>
+      <circle cx="30" cy="30" r="21" stroke="#0fb374" stroke-width="1"/>
+      <path d="M30 8 L34 30 L30 52 L26 30 Z" fill="#dff3ee"/>
+      <path d="M8 30 L30 26 L52 30 L30 34 Z" fill="#0fb374" opacity="0.7"/>
+      <circle cx="30" cy="30" r="3" fill="#0fb374"/>
+      <text x="30" y="7" font-size="6" fill="#dff3ee" text-anchor="middle" font-family="IBM Plex Mono, monospace">N</text>
     </svg>
     <div class="titles">
       <h1>Guess The Capital</h1>
@@ -684,7 +686,7 @@
       const row = document.createElement('div');
       row.className = 'guess-row' + (g.correct ? ' correct' : '');
       const arrowSvg = `<svg viewBox="0 0 24 24" fill="none" style="transform:rotate(${g.correct ? 0 : g.brng}deg)">
-        <path d="M12 3 L12 19 M12 3 L6 9 M12 3 L18 9" stroke="${g.correct ? '#1f9d6b' : '#123a5e'}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 3 L12 19 M12 3 L6 9 M12 3 L18 9" stroke="${g.correct ? '#0fb374' : '#0a3a63'}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>`;
       row.innerHTML = `
         <div class="guess-num">${i+1}</div>
@@ -694,7 +696,7 @@
         <div class="guess-dist">
           ${g.correct ? '<span class="correct-mark">CORRECT ✓</span>' : `${Math.round(g.dist).toLocaleString('en-GB')} km<small>${compassLabel(g.brng)}</small>`}
         </div>
-        <div class="guess-arrow">${g.correct ? '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#1f9d6b" stroke-width="2"/><path d="M7 12l3 3 7-7" stroke="#1f9d6b" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>' : arrowSvg}</div>
+        <div class="guess-arrow">${g.correct ? '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#0fb374" stroke-width="2"/><path d="M7 12l3 3 7-7" stroke="#0fb374" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>' : arrowSvg}</div>
         <div class="proximity-bar"><div class="proximity-fill" style="width:${g.proximity}%"></div></div>
       `;
       guessesList.appendChild(row);
@@ -708,7 +710,7 @@
 
   // Confetti in the site's own palette — fires once for a live win, never when a saved
   // game is silently being restored on load (see the `restoring` guard around tryRestore).
-  const CONFETTI_COLORS = ['#1f9d6b', '#3fc088', '#1f7a9c', '#123a5e', '#4d7088', '#d4af37', '#f0cf6b'];
+  const CONFETTI_COLORS = ['#0fb374', '#38e69c', '#0e84b8', '#dff3ee', '#4fa8e0', '#d4af37', '#f0cf6b'];
   const confettiLayer = document.getElementById('confettiLayer');
   function launchConfetti(){
     if(!confettiLayer) return;
