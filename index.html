@@ -975,7 +975,7 @@
   const confettiLayer = document.getElementById('confettiLayer');
   function launchConfetti(){
     if(!confettiLayer) return;
-    const pieceCount = 140;
+    const pieceCount = 560;
     for(let i = 0; i < pieceCount; i++){
       const el = document.createElement('div');
       el.className = 'confetti-piece';
@@ -986,8 +986,8 @@
       el.style.background = CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
       el.style.setProperty('--drift', (Math.random() * 40 - 20) + 'vw');
       el.style.setProperty('--spin', Math.round(Math.random() * 720 - 360) + 'deg');
-      el.style.animationDuration = (3.6 + Math.random() * 2.8) + 's';
-      el.style.animationDelay = (Math.random() * 0.7) + 's';
+      el.style.animationDuration = (7.2 + Math.random() * 5.6) + 's';
+      el.style.animationDelay = (Math.random() * 1.4) + 's';
       el.addEventListener('animationend', () => el.remove());
       confettiLayer.appendChild(el);
     }
