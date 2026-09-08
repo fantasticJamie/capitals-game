@@ -204,6 +204,18 @@
   }
   .guess-row.correct{border-color:var(--correct);background:rgba(31,157,107,0.08);}
   @keyframes pop{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+
+  /* confetti: fires once on a genuine win, in the site's own palette */
+  #confettiLayer{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:200;}
+  .confetti-piece{
+    position:absolute;top:-20px;left:0;border-radius:2px;opacity:0.95;
+    animation-name:confetti-fall;animation-timing-function:cubic-bezier(0.15,0.5,0.35,1);
+    animation-fill-mode:forwards;
+  }
+  @keyframes confetti-fall{
+    0%{transform:translate(0,0) rotate(0deg);opacity:0.95;}
+    100%{transform:translate(var(--drift), 110vh) rotate(var(--spin));opacity:0.85;}
+  }
   .guess-num{
     font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);
     width:28px;height:28px;border-radius:50%;background:var(--paper-dark);
@@ -309,6 +321,7 @@
 </style>
 </head>
 <body>
+<div id="confettiLayer" aria-hidden="true"></div>
 <div class="wrap">
 
   <div class="header">
@@ -481,6 +494,7 @@
   let guesses = [];
   let finished = false;
   let practiceMode = false;
+  let restoring = false; // true while tryRestore() is silently replaying a saved game
   const guessedCountryIdxs = new Set(); // countries with a REAL capital attempt (right or wrong)
   const guessedItemKeys = new Set();    // exact capital/distractor names already tried, so you can't repeat one
 
@@ -647,10 +661,12 @@
     let saved = null;
     try{ saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch(e){ return; }
     if(!saved || saved.puzzleIdx !== targetIdx) return;
+    restoring = true;
     (saved.guesses || []).forEach(g => {
       const found = flatCities.find(c => c.name === g.name && c.countryIdx === g.countryIdx);
       if(found) submitGuess(found);
     });
+    restoring = false;
   }
 
   const resetBtn = document.getElementById('resetBtn');
@@ -690,6 +706,30 @@
     return `<div class="city-line"><span class="cname">${cap.name}${note}</span><span class="cpop">${fmtNum(cap.population)}</span></div>`;
   }
 
+  // Confetti in the site's own palette — fires once for a live win, never when a saved
+  // game is silently being restored on load (see the `restoring` guard around tryRestore).
+  const CONFETTI_COLORS = ['#1f9d6b', '#3fc088', '#1f7a9c', '#123a5e', '#4d7088', '#d4af37', '#f0cf6b'];
+  const confettiLayer = document.getElementById('confettiLayer');
+  function launchConfetti(){
+    if(!confettiLayer) return;
+    const pieceCount = 140;
+    for(let i = 0; i < pieceCount; i++){
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      const size = 6 + Math.random() * 6;
+      el.style.left = (Math.random() * 100) + 'vw';
+      el.style.width = size + 'px';
+      el.style.height = (size * 1.6) + 'px';
+      el.style.background = CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
+      el.style.setProperty('--drift', (Math.random() * 40 - 20) + 'vw');
+      el.style.setProperty('--spin', Math.round(Math.random() * 720 - 360) + 'deg');
+      el.style.animationDuration = (3.6 + Math.random() * 2.8) + 's';
+      el.style.animationDelay = (Math.random() * 0.7) + 's';
+      el.addEventListener('animationend', () => el.remove());
+      confettiLayer.appendChild(el);
+    }
+  }
+
   function finish(won){
     finished = true;
     input.disabled = true;
@@ -698,6 +738,7 @@
       : (practiceMode ? "Out of guesses" : "Out of guesses — come back tomorrow");
     renderPeekUI();
     renderLastGuessWarning();
+    if(won && !restoring) launchConfetti();
 
     let html = `<div class="reveal ${won ? 'result-win' : 'result-loss'}">
       ${won ? '<div class="correct-banner">You win!</div>' : ''}
