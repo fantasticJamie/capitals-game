@@ -673,7 +673,7 @@
     const controls = globe.controls();
     controls.enableZoom = false; // a fixed distance, so the mouse wheel still scrolls the page
     controls.autoRotate = !reducedMotion;
-    controls.autoRotateSpeed = 0.45;
+    controls.autoRotateSpeed = -0.45; // negative = surface drifts west-to-east, like the real thing
     controls.addEventListener('start', () => {
       clearTimeout(idleTimer);
       controls.autoRotate = false;
