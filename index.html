@@ -583,6 +583,15 @@
   }
   function fmtNum(n){ return n.toLocaleString('en-GB'); }
 
+  // Mobile keyboards auto-substitute a typed straight apostrophe (') for a curly one (’)
+  // via smart punctuation, so a query typed on a phone otherwise never matches a stored
+  // name like "N'Djamena" that uses a plain straight apostrophe. Fold every apostrophe-ish
+  // character (curly quotes, the modifier-letter apostrophe, acute accent, backtick) down
+  // to a plain ' before comparing, on both sides of every match.
+  function normalizeText(s){
+    return s.replace(/[‘’ʼ´`]/g, "'").toLowerCase();
+  }
+
   let guesses = [];
   let finished = false;
   let practiceMode = false;
@@ -852,10 +861,10 @@
   }
 
   function renderDropdown(query){
-    const q = query.trim().toLowerCase();
+    const q = normalizeText(query.trim());
     if(!q){ dropdown.style.display = 'none'; return; }
     const matches = flatCities
-      .filter(c => notYetGuessed(c) && c.name.toLowerCase().includes(q))
+      .filter(c => notYetGuessed(c) && normalizeText(c.name).includes(q))
       .slice(0, 8);
     dropdown.innerHTML = '';
     if(matches.length === 0){
@@ -876,10 +885,10 @@
   input.addEventListener('input', () => renderDropdown(input.value));
   input.addEventListener('keydown', (e) => {
     if(e.key === 'Enter'){
-      const q = input.value.trim().toLowerCase();
+      const q = normalizeText(input.value.trim());
       if(!q) return;
-      const match = flatCities.find(c => notYetGuessed(c) && c.name.toLowerCase() === q)
-        || flatCities.find(c => notYetGuessed(c) && c.name.toLowerCase().includes(q));
+      const match = flatCities.find(c => notYetGuessed(c) && normalizeText(c.name) === q)
+        || flatCities.find(c => notYetGuessed(c) && normalizeText(c.name).includes(q));
       if(match) submitGuess(match);
     } else if(e.key === 'Escape'){
       dropdown.style.display = 'none';
@@ -921,11 +930,11 @@
   // non-interactive text underneath — nothing here is clickable or submittable, so looking
   // never costs a guess. Typing the capital into the box above is still the only real guess.
   function renderPeekResults(query){
-    const q = query.trim().toLowerCase();
+    const q = normalizeText(query.trim());
     peekResults.innerHTML = '';
     if(!q) return;
     const matches = flatCountries
-      .filter(c => notYetGuessed(c) && c.name.toLowerCase().includes(q))
+      .filter(c => notYetGuessed(c) && normalizeText(c.name).includes(q))
       .slice(0, 5);
     if(matches.length === 0){
       peekResults.innerHTML = `<div class="peek-empty">No matching country found</div>`;
