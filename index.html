@@ -205,7 +205,11 @@
     margin:4px 0 18px;
     border-radius:var(--radius);
     overflow:hidden;
-    touch-action:none; /* the globe owns touch here, so a drag spins it instead of scrolling */
+    /* Let a single-finger vertical swipe scroll the page as normal, even when it starts on the
+       globe — only a horizontal/diagonal drag (the "spin" gesture) is left for the globe's own
+       controls to handle. See initGlobe(): the canvas element itself also needs this relaxed,
+       since its own controls otherwise force it back to touch-action:none. */
+    touch-action:pan-y;
   }
   .globe-viz{position:absolute;inset:0;} /* globe.gl empties this element on init, so overlays live beside it, not inside */
   .globe-panel canvas{display:block;outline:none;}
@@ -723,6 +727,11 @@
     controls.enableZoom = false; // a fixed distance, so the mouse wheel still scrolls the page
     controls.autoRotate = !reducedMotion;
     controls.autoRotateSpeed = -0.45; // negative = surface drifts west-to-east, like the real thing
+    // The controls set touch-action:none directly on the canvas when they attach, which would
+    // silently override our CSS and trap every touch (even a plain vertical scroll) on the
+    // globe. Relax it back to pan-y so a vertical swipe still scrolls the page on mobile —
+    // dragging sideways to spin the globe still works, since that's left for the controls.
+    if(controls.domElement) controls.domElement.style.touchAction = 'pan-y';
     controls.addEventListener('start', () => {
       clearTimeout(idleTimer);
       controls.autoRotate = false;
