@@ -236,6 +236,43 @@
     color:var(--page-text-soft);opacity:0.7;pointer-events:none;
   }
 
+  /* direction flash: a big translucent arrow + distance that appears over the globe right after
+     a guess, then fades away — a glanceable hint so you needn't look down at the guess list. */
+  .globe-flash{
+    position:absolute;inset:0;z-index:6;display:none;
+    flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    pointer-events:none;
+  }
+  .globe-flash.show{display:flex;animation:globe-flash-fade 4.5s ease-out forwards;}
+  .globe-flash.show.correct{animation-duration:3.2s;}
+  .globe-flash .flash-arrow{
+    width:clamp(150px, 46%, 210px);height:auto;aspect-ratio:1;
+    filter:drop-shadow(0 4px 14px rgba(0,0,0,0.55));
+  }
+  .globe-flash .flash-arrow svg{width:100%;height:100%;display:block;}
+  .globe-flash .flash-arrow.correct{width:clamp(130px, 38%, 170px);}
+  .globe-flash .flash-dist{
+    font-family:'IBM Plex Mono',monospace;font-weight:700;
+    font-size:clamp(24px, 7vw, 34px);letter-spacing:0.5px;line-height:1.1;
+    color:#ffffff;text-shadow:0 2px 12px rgba(0,0,0,0.7), 0 0 2px rgba(0,0,0,0.9);
+    text-align:center;
+  }
+  .globe-flash .flash-dist small{
+    display:block;font-size:0.5em;font-weight:600;letter-spacing:2px;text-transform:uppercase;
+    color:var(--page-text);margin-top:2px;
+  }
+  .globe-flash .flash-dist.correct{color:var(--brass-light);}
+  @keyframes globe-flash-fade{
+    0%{opacity:0;transform:scale(0.7);}
+    10%{opacity:0.62;transform:scale(1);}
+    45%{opacity:0.62;transform:scale(1);}
+    100%{opacity:0;transform:scale(1.06);}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .globe-flash.show{animation:globe-flash-fade-still 4.5s linear forwards;}
+    @keyframes globe-flash-fade-still{0%,60%{opacity:0.62;}100%{opacity:0;}}
+  }
+
   /* attempts dots */
   .attempts{display:flex;gap:7px;margin-bottom:18px;}
   .dot{width:9px;height:9px;border-radius:50%;background:var(--line);}
@@ -433,6 +470,7 @@
     <button type="button" class="globe-zoom out" id="globeZoomOut" aria-label="Zoom out">−</button>
     <div class="globe-hint">Drag to spin</div>
     <button type="button" class="globe-zoom in" id="globeZoomIn" aria-label="Zoom in">+</button>
+    <div class="globe-flash" id="globeFlash" aria-hidden="true"></div>
   </div>
 
   <div class="guesses" id="guessesList"></div>
@@ -751,7 +789,11 @@
       const touch = e.touches[0];
       const dx = touch.clientX - (rect.left + rect.width / 2);
       const dy = touch.clientY - (rect.top + rect.height / 2);
-      const radius = Math.min(rect.width, rect.height) * 0.4; // approximates the rendered sphere; nudge this if it feels too eager or too fussy
+      // Approximate the rendered sphere's on-screen radius from the current camera altitude
+      // (globe.gl's camera has a 50° vertical FOV): the closer you zoom, the more of the panel
+      // the globe fills and the bigger the "spin, don't scroll" zone must be.
+      const frac = Math.min(1, Math.tan(Math.asin(1 / (1 + zoomAltitude))) / Math.tan(25 * Math.PI / 180));
+      const radius = Math.min(rect.height / 2 * frac * 1.1, Math.hypot(rect.width, rect.height) / 2);
       if(dx * dx + dy * dy <= radius * radius){
         e.preventDefault();
       } else {
@@ -811,7 +853,9 @@
 
   // Zoom is done by camera altitude (distance from the surface, in globe radii) so the
   // buttons and fly-to share one scale. The wheel/pinch stays off — see controls.enableZoom.
-  const ZOOM_MIN = 0.7, ZOOM_MAX = 3.5, ZOOM_STEP = 1.3;
+  // ZOOM_MIN 0.3 lets you get down to city-region scale (about 3 clicks past the old 0.7 floor)
+  // so the small countries — Caribbean, Gulf, Pacific — actually fill the panel.
+  const ZOOM_MIN = 0.3, ZOOM_MAX = 3.5, ZOOM_STEP = 1.3;
   let zoomAltitude = 2.2;
   const zoomOutBtn = document.getElementById('globeZoomOut');
   const zoomInBtn = document.getElementById('globeZoomIn');
@@ -955,11 +999,43 @@
     renderPeekUI();
     saveState();
     refreshGlobe();
-    if(!restoring) globeFocus(item);
+    if(!restoring){
+      globeFocus(item);
+      showGlobeFlash(dist, brng, correct);
+    }
 
     if(correct || guesses.length >= MAX_GUESSES){
       finish(correct);
     }
+  }
+
+  // Big, see-through direction hint over the globe, tinted with the same far-yellow → close-red
+  // heat scale the guessed country is painted with (heatColor). Restarting the CSS animation needs the
+  // class removed and a reflow forced, otherwise a quick second guess wouldn't re-trigger it.
+  const globeFlash = document.getElementById('globeFlash');
+  let globeFlashTimer = null;
+  function showGlobeFlash(dist, brng, correct){
+    if(!globeFlash) return;
+    clearTimeout(globeFlashTimer);
+    globeFlash.className = 'globe-flash';
+    void globeFlash.offsetWidth;
+    if(correct){
+      globeFlash.innerHTML = `
+        <div class="flash-arrow correct"><svg viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="9.5" stroke="#38e69c" stroke-width="1.6"/>
+          <path d="M7 12l3 3 7-7" stroke="#38e69c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg></div>
+        <div class="flash-dist correct">CORRECT</div>`;
+    } else {
+      globeFlash.innerHTML = `
+        <div class="flash-arrow"><svg viewBox="0 0 24 24" fill="none" style="transform:rotate(${brng}deg)">
+          <path d="M12 3 L12 20 M12 3 L5.5 9.5 M12 3 L18.5 9.5" stroke="${heatColor(dist)}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg></div>
+        <div class="flash-dist" style="color:${heatColor(dist)}">${Math.round(dist).toLocaleString('en-GB')} km<small style="color:${heatColor(dist)}">${compassLabel(brng)}</small></div>`;
+    }
+    globeFlash.classList.add('show');
+    if(correct) globeFlash.classList.add('correct');
+    globeFlashTimer = setTimeout(() => { globeFlash.className = 'globe-flash'; }, correct ? 3300 : 4600);
   }
 
   // Peek box: live-filters countries as you type and shows their capital as plain,
