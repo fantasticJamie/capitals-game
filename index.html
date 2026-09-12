@@ -261,6 +261,7 @@
     display:block;font-size:0.5em;font-weight:600;letter-spacing:2px;text-transform:uppercase;
     color:var(--page-text);margin-top:2px;
   }
+  .globe-flash .flash-dist{margin-bottom:6px;}
   .globe-flash .flash-dist.correct{color:var(--brass-light);}
   @keyframes globe-flash-fade{
     0%{opacity:0;transform:scale(0.7);}
@@ -1021,17 +1022,17 @@
     void globeFlash.offsetWidth;
     if(correct){
       globeFlash.innerHTML = `
+        <div class="flash-dist correct">CORRECT</div>
         <div class="flash-arrow correct"><svg viewBox="0 0 24 24" fill="none">
           <circle cx="12" cy="12" r="9.5" stroke="#38e69c" stroke-width="1.6"/>
           <path d="M7 12l3 3 7-7" stroke="#38e69c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg></div>
-        <div class="flash-dist correct">CORRECT</div>`;
+        </svg></div>`;
     } else {
       globeFlash.innerHTML = `
+        <div class="flash-dist" style="color:${heatColor(dist)}">${Math.round(dist).toLocaleString('en-GB')} km<small style="color:${heatColor(dist)}">${compassLabel(brng)}</small></div>
         <div class="flash-arrow"><svg viewBox="0 0 24 24" fill="none" style="transform:rotate(${brng}deg)">
           <path d="M12 3 L12 20 M12 3 L5.5 9.5 M12 3 L18.5 9.5" stroke="${heatColor(dist)}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg></div>
-        <div class="flash-dist" style="color:${heatColor(dist)}">${Math.round(dist).toLocaleString('en-GB')} km<small style="color:${heatColor(dist)}">${compassLabel(brng)}</small></div>`;
+        </svg></div>`;
     }
     globeFlash.classList.add('show');
     if(correct) globeFlash.classList.add('correct');
