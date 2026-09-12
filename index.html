@@ -729,9 +729,36 @@
     controls.autoRotateSpeed = -0.45; // negative = surface drifts west-to-east, like the real thing
     // The controls set touch-action:none directly on the canvas when they attach, which would
     // silently override our CSS and trap every touch (even a plain vertical scroll) on the
-    // globe. Relax it back to pan-y so a vertical swipe still scrolls the page on mobile —
-    // dragging sideways to spin the globe still works, since that's left for the controls.
+    // globe. Relax that baseline to pan-y so a touch anywhere in the panel is allowed to scroll
+    // the page by default; the listener below then claims only the touches that actually land
+    // on the visible globe, so the panel's empty corners never fight the page scroll.
     if(controls.domElement) controls.domElement.style.touchAction = 'pan-y';
+
+    // touch-action can only say "allow scrolling here" or "don't" for a whole element — it can't
+    // single out just the round globe within its rectangular panel. So handle that split by hand:
+    // on touch-start, test whether the finger landed inside the globe's on-screen circle.
+    //   - inside: preventDefault() cancels the page scroll for this gesture and lets the
+    //     controls' own touchstart (registered on the canvas, right after this one runs) pick it
+    //     up as a spin, same as before.
+    //   - outside: stopPropagation() keeps that same event from ever reaching the controls, so
+    //     they never start a drag, and — since we didn't preventDefault — the browser scrolls the
+    //     page normally, as if the globe weren't there.
+    // Listening in the capture phase on the panel (rather than the canvas) guarantees this runs
+    // before the controls' listener either way, regardless of the order globe.gl attached its own.
+    globePanel.addEventListener('touchstart', (e) => {
+      if(!e.touches || !e.touches.length) return;
+      const rect = globePanel.getBoundingClientRect();
+      const touch = e.touches[0];
+      const dx = touch.clientX - (rect.left + rect.width / 2);
+      const dy = touch.clientY - (rect.top + rect.height / 2);
+      const radius = Math.min(rect.width, rect.height) * 0.4; // approximates the rendered sphere; nudge this if it feels too eager or too fussy
+      if(dx * dx + dy * dy <= radius * radius){
+        e.preventDefault();
+      } else {
+        e.stopPropagation();
+      }
+    }, { capture: true, passive: false });
+
     controls.addEventListener('start', () => {
       clearTimeout(idleTimer);
       controls.autoRotate = false;
