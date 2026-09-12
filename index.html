@@ -296,16 +296,63 @@
   .guess-row.correct{border-color:var(--correct);background:#c5f0d8;}
   @keyframes pop{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
 
-  /* confetti: fires once on a genuine win, in the site's own palette */
-  #confettiLayer{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:200;}
+  /* confetti: fires once on a genuine win, in the site's own palette. Each piece is two
+     layers: the outer one falls, drifts and sways; the inner one tumbles in 3D (rotateX/Y)
+     with a light-to-dark gradient, so pieces catch the light and flicker as they flip.
+     Sparkles are 4-point stars that twinkle as they drift down. */
+  #confettiLayer{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:200;perspective:800px;}
   .confetti-piece{
-    position:absolute;top:-20px;left:0;border-radius:2px;opacity:0.95;
-    animation-name:confetti-fall;animation-timing-function:cubic-bezier(0.15,0.5,0.35,1);
+    position:absolute;top:-24px;left:0;
+    animation-name:confetti-fall;animation-timing-function:linear;
     animation-fill-mode:forwards;
+    will-change:transform,opacity;
   }
+  .confetti-piece .inner{
+    display:block;width:100%;height:100%;border-radius:2px;
+    background:linear-gradient(135deg, rgba(255,255,255,0.65) 0%, var(--c) 40%, var(--c) 60%, rgba(0,0,0,0.35) 100%);
+    background-color:var(--c);
+    animation:confetti-tumble var(--tumble) linear infinite;
+    transform-style:preserve-3d;backface-visibility:visible;
+    box-shadow:0 0 1px rgba(0,0,0,0.25);
+  }
+  .confetti-piece.round .inner{border-radius:50%;}
+  .confetti-piece.ribbon .inner{border-radius:1px;}
+  .confetti-piece.sparkle .inner{
+    background:radial-gradient(circle, #ffffff 0%, var(--c) 35%, transparent 72%);
+    clip-path:polygon(50% 0%, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0% 50%, 39% 39%);
+    animation:confetti-twinkle var(--tumble) ease-in-out infinite;
+    filter:drop-shadow(0 0 3px #ffffff) drop-shadow(0 0 6px var(--c));
+  }
+  .confetti-piece .sway{
+    display:block;width:100%;height:100%;
+    animation:confetti-sway var(--swayTime) ease-in-out infinite alternate;
+  }
+  /* One straight, linear fall from top to bottom — no mid-way keyframes, since each keyframe
+     boundary re-applies the easing curve and makes pieces bunch into visible bands. The
+     side-to-side sway and the tumble run as their own infinite loops on the inner layers. */
   @keyframes confetti-fall{
-    0%{transform:translate(0,0) rotate(0deg);opacity:0.95;}
-    100%{transform:translate(var(--drift), 110vh) rotate(var(--spin));opacity:0.85;}
+    0%{transform:translate(0,0) rotate(0deg);opacity:0;}
+    4%{opacity:1;}
+    85%{opacity:1;}
+    100%{transform:translate(var(--drift), 110vh) rotate(var(--spin));opacity:0.5;}
+  }
+  @keyframes confetti-sway{
+    from{transform:translateX(calc(var(--sway) * -1));}
+    to{transform:translateX(var(--sway));}
+  }
+  @keyframes confetti-tumble{
+    0%{transform:rotateX(0deg) rotateY(0deg);filter:brightness(1);}
+    25%{filter:brightness(1.55);}
+    50%{transform:rotateX(180deg) rotateY(360deg);filter:brightness(0.75);}
+    75%{filter:brightness(1.55);}
+    100%{transform:rotateX(360deg) rotateY(720deg);filter:brightness(1);}
+  }
+  @keyframes confetti-twinkle{
+    0%,100%{transform:scale(0.35) rotate(0deg);opacity:0.3;}
+    50%{transform:scale(1.25) rotate(90deg);opacity:1;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .confetti-piece .inner, .confetti-piece .sway{animation:none;}
   }
   .guess-num{
     font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);
@@ -1137,17 +1184,36 @@
   const confettiLayer = document.getElementById('confettiLayer');
   function launchConfetti(){
     if(!confettiLayer) return;
-    const pieceCount = 560;
-    for(let i = 0; i < pieceCount; i++){
+    const pieceCount = 480, sparkleCount = 70;
+    for(let i = 0; i < pieceCount + sparkleCount; i++){
+      const sparkle = i >= pieceCount;
       const el = document.createElement('div');
-      el.className = 'confetti-piece';
-      const size = 6 + Math.random() * 6;
+      const sway = document.createElement('span');
+      sway.className = 'sway';
+      const inner = document.createElement('span');
+      inner.className = 'inner';
+      sway.appendChild(inner);
+      el.appendChild(sway);
+      const colour = CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
+      let w, h, kind;
+      if(sparkle){
+        kind = 'sparkle'; w = h = 10 + Math.random() * 10;
+      } else {
+        const r = Math.random();
+        if(r < 0.2){ kind = 'round'; w = h = 5 + Math.random() * 5; }
+        else if(r < 0.45){ kind = 'ribbon'; w = 3 + Math.random() * 3; h = 14 + Math.random() * 12; }
+        else { kind = 'rect'; w = 6 + Math.random() * 6; h = w * 1.6; }
+      }
+      el.className = 'confetti-piece ' + kind;
       el.style.left = (Math.random() * 100) + 'vw';
-      el.style.width = size + 'px';
-      el.style.height = (size * 1.6) + 'px';
-      el.style.background = CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
+      el.style.width = w + 'px';
+      el.style.height = h + 'px';
+      el.style.setProperty('--c', colour);
       el.style.setProperty('--drift', (Math.random() * 40 - 20) + 'vw');
-      el.style.setProperty('--spin', Math.round(Math.random() * 720 - 360) + 'deg');
+      el.style.setProperty('--sway', (1.5 + Math.random() * 3) + 'vw');
+      el.style.setProperty('--swayTime', (1.2 + Math.random() * 1.6) + 's');
+      el.style.setProperty('--spin', Math.round(Math.random() * 1080 - 540) + 'deg');
+      el.style.setProperty('--tumble', (sparkle ? 0.5 + Math.random() * 0.7 : 0.6 + Math.random() * 1.4) + 's');
       el.style.animationDuration = (7.2 + Math.random() * 5.6) + 's';
       el.style.animationDelay = (Math.random() * 1.4) + 's';
       el.addEventListener('animationend', () => el.remove());
