@@ -275,7 +275,8 @@
   }
 
   /* attempts dots */
-  .attempts{display:flex;gap:7px;margin-bottom:18px;}
+  .attempts-row{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+  .attempts{display:flex;gap:7px;}
   /* Attempt dots start as "unguessed country" blue (the globe's land tint over the ocean, with
      its border colour) and take on the guessed country's heat colour after each guess:
      yellow = far, red = close, green = correct. Set inline from heatColor() in renderAttempts. */
@@ -285,6 +286,18 @@
     transition:background 0.4s ease, border-color 0.4s ease;
   }
   .dot.used{border-color:rgba(255,255,255,0.35);}
+  /* The most recent guess pulses a faint ring in its own colour (--dot-c) so your eye lands on it. */
+  .dot.latest{position:relative;animation:dot-pulse 1.4s ease-out infinite;}
+  @keyframes dot-pulse{
+    0%{box-shadow:0 0 0 0 color-mix(in srgb, var(--dot-c) 85%, transparent);transform:scale(1);}
+    50%{transform:scale(1.18);}
+    70%{box-shadow:0 0 0 10px color-mix(in srgb, var(--dot-c) 0%, transparent);}
+    100%{box-shadow:0 0 0 10px transparent;transform:scale(1);}
+  }
+  @supports not (color: color-mix(in srgb, red, blue)){
+    .dot.latest{box-shadow:0 0 0 2px var(--dot-c);animation:none;opacity:0.9;}
+  }
+  @media (prefers-reduced-motion: reduce){ .dot.latest{animation:none;box-shadow:0 0 0 2px var(--dot-c);} }
   .dot.used-correct{background:var(--correct);border-color:var(--brass-light);}
 
   /* guess rows */
@@ -371,8 +384,7 @@
   .guess-city .ctry{font-size:11.5px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;}
   .last-guess-warning{
     font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;
-    letter-spacing:0.6px;text-transform:uppercase;color:#ff7a68;
-    margin-bottom:8px;display:none;
+    letter-spacing:0.4px;color:#ff7a68;line-height:1;display:none;
   }
   .last-guess-warning.show{display:block;animation:flash-warning 0.9s ease-in-out infinite;}
   @keyframes flash-warning{
@@ -412,9 +424,27 @@
   }
   .reveal.result-loss{
     border-width:4px;
-    border-color:#c1502f;
-    box-shadow:0 0 0 1px rgba(193,80,47,0.15);
+    border-color:rgba(255,122,104,0.8);
+    background:rgba(184,35,26,0.3); /* red at 30% over the page's navy, so the blue shows through */
+    box-shadow:0 0 22px 5px rgba(224,57,43,0.35);
   }
+  .loss-banner{
+    font-family:'Fraunces',serif;font-weight:700;font-size:38px;
+    color:#c4c4c4;text-align:center;margin:-4px 0 12px;
+    letter-spacing:0.5px;text-shadow:0 2px 8px rgba(0,0,0,0.3);
+  }
+  /* Text on the red card runs in mid greys — a touch brighter for the headline items. */
+  .reveal.result-loss .reveal-status{color:#a8a8a8;}
+  .reveal.result-loss .reveal-country{color:#c4c4c4;}
+  .reveal.result-loss .reveal-subtitle{color:#a8a8a8;}
+  .reveal.result-loss .reveal-subtitle .country-name{color:#c4c4c4;}
+  .reveal.result-loss .reveal-section h4{color:#a8a8a8;}
+  .reveal.result-loss .city-line{border-bottom-color:rgba(200,200,200,0.3);}
+  .reveal.result-loss .city-line .cname,
+  .reveal.result-loss .city-line .cpop{color:#c4c4c4;}
+  .reveal.result-loss .city-line .cnote{color:#a8a8a8;}
+  .reveal.result-loss .reveal-note{color:#b4b4b4;}
+
   .correct-banner{
     font-family:'Fraunces',serif;font-weight:700;font-size:38px;
     color:var(--correct);text-align:center;margin:-4px 0 12px;
@@ -422,7 +452,7 @@
   }
   .reveal-status{
     font-family:'IBM Plex Mono',monospace;
-    font-size:12px;letter-spacing:1px;text-transform:uppercase;
+    font-size:12px;letter-spacing:0.3px;
     color:var(--ink-soft);margin-bottom:4px;
   }
   .reveal-country{
@@ -437,7 +467,7 @@
   }
   .reveal-section{margin-bottom:14px;}
   .reveal-section h4{
-    margin:0 0 8px;font-size:11px;letter-spacing:0.8px;text-transform:uppercase;
+    margin:0 0 8px;font-size:11.5px;letter-spacing:0.3px;
     color:var(--brass);font-family:'IBM Plex Mono',monospace;font-weight:600;
   }
   .city-line{
@@ -490,7 +520,7 @@
   <p class="intro-blurb">You have 6 guesses. After 3 guesses, "Look up country" (top right) unlocks and flashes green.</p>
 
   <div class="meta-row">
-    <span>PUZZLE <b id="puzzleNum">—</b></span>
+    <span>Puzzle <b id="puzzleNum">—</b></span>
     <span id="todayDate">—</span>
   </div>
   <div class="countdown-row" id="countdownRow">Next capital in <span id="countdownTimer">—</span></div>
@@ -509,9 +539,10 @@
 
   <div id="revealZone"></div>
 
-  <div class="attempts" id="attemptsRow"></div>
-
-  <div class="last-guess-warning" id="lastGuessWarning">⚠ Last guess! ⚠</div>
+  <div class="attempts-row">
+    <div class="attempts" id="attemptsRow"></div>
+    <div class="last-guess-warning" id="lastGuessWarning">Last guess!</div>
+  </div>
 
   <div class="search-box" id="searchBox">
     <input type="text" class="search-input" id="searchInput" placeholder="Type a capital city…" autocomplete="off" />
@@ -878,6 +909,12 @@
 
     globeStatus.textContent = '';
     refreshGlobe();
+    if(lostMode){
+      // Restored a lost game before the globe existed: land straight in the drained state.
+      const mat = globe.globeMaterial();
+      mat.color.set(LOSS_COLORS.ocean); mat.emissive.set(LOSS_COLORS.emissive);
+      globe.atmosphereColor(LOSS_COLORS.atmosphere);
+    }
 
     // Pick up where a restored game left off.
     if(finished && !guesses[guesses.length - 1].correct){
@@ -891,23 +928,70 @@
   }
 
   // Repaint the whole globe from the current game state.
+  // On a loss the globe "drains": ocean, land, borders, atmosphere and every guess fade to
+  // grey over ~1.2s; your guessed countries keep their heat colours and the answer is painted red, with a red radar
+  // ping over the capital. lostMode drives the palette below; drainGlobe() runs the fade.
+  const LOSS_COLORS = {
+    ocean: '#2b3138', emissive: '#111417', land: 'rgba(200,205,210,0.12)',
+    border: 'rgba(200,205,210,0.28)', side: 'rgba(20,22,26,0.5)',
+    label: '#9aa0a8', atmosphere: '#8a9099',
+    // The answer country: the game's "correct" green, same as a win. Alternatives tried and
+    // parked — gold '#d4af37' / '#f0cf6b', purple '#8e5bd8' / '#c9a8ff', red '#e0392b' / '#ff7a68'.
+    answer: '#0fb374', answerLabel: '#ffffff' // white label — pale-mint/green text vanishes on the green country
+  };
+  let lostMode = false;
+
   function refreshGlobe(){
     if(!globe) return;
     const paint = new Map();   // map-unit name -> colour
     const labels = [];
     guesses.forEach(g => {
-      const colour = g.correct ? GLOBE_COLORS.correct : heatColor(g.dist);
+      const colour = g.correct ? GLOBE_COLORS.correct : heatColor(g.dist); // guesses keep their heat colour even on the drained globe
       unitsFor(g.city).forEach(f => paint.set(f.properties.u, colour));
-      labels.push({ lat: g.city.lat, lng: g.city.lon, text: g.city.name });
+      labels.push({ lat: g.city.lat, lng: g.city.lon, text: g.city.name, answer: false, onGreen: g.correct });
     });
     if(revealTarget){
-      unitsFor({ country: target.country }).forEach(f => paint.set(f.properties.u, GLOBE_COLORS.correct));
-      target.capitals.forEach(c => labels.push({ lat: c.lat, lng: c.lon, text: c.name }));
+      const answerColour = lostMode ? LOSS_COLORS.answer : GLOBE_COLORS.correct;
+      unitsFor({ country: target.country }).forEach(f => paint.set(f.properties.u, answerColour));
+      target.capitals.forEach(c => labels.push({ lat: c.lat, lng: c.lon, text: c.name, answer: true }));
     }
+    const pal = lostMode ? LOSS_COLORS : GLOBE_COLORS;
     globe
-      .polygonCapColor(f => paint.get(f.properties.u) || GLOBE_COLORS.land)
+      .polygonCapColor(f => paint.get(f.properties.u) || pal.land)
+      .polygonSideColor(() => pal.side)
+      .polygonStrokeColor(() => pal.border)
       .polygonAltitude(f => paint.has(f.properties.u) ? 0.016 : 0.008)
-      .labelsData(labels);
+      .labelColor(l => (l.answer || l.onGreen) ? LOSS_COLORS.answerLabel : pal.label) // any label sitting on a green country goes white for contrast
+      .labelsData(labels)
+      .ringsData(lostMode && revealTarget ? target.capitals.map(c => ({ lat: c.lat, lng: c.lon })) : [])
+      .ringColor(() => t => `rgba(224,57,43,${1 - t})`)
+      .ringMaxRadius(6)
+      .ringPropagationSpeed(2.2)
+      .ringRepeatPeriod(1100);
+  }
+
+  // Fade the globe material between the two palettes. three.js Color.lerp is available on the
+  // material colours themselves, so no direct THREE import is needed.
+  let drainRaf = null;
+  function drainGlobe(toLost){
+    if(!globe) return;
+    cancelAnimationFrame(drainRaf);
+    const mat = globe.globeMaterial();
+    const from = { c: mat.color.clone(), e: mat.emissive.clone() };
+    const to = {
+      c: mat.color.clone().set(toLost ? LOSS_COLORS.ocean : GLOBE_COLORS.ocean),
+      e: mat.emissive.clone().set(toLost ? LOSS_COLORS.emissive : '#06203a')
+    };
+    globe.atmosphereColor(toLost ? LOSS_COLORS.atmosphere : '#38e69c');
+    const dur = reducedMotion ? 0 : 1200, t0 = performance.now();
+    const step = (now) => {
+      const t = dur ? Math.min(1, (now - t0) / dur) : 1;
+      const k = t * t * (3 - 2 * t); // smoothstep
+      mat.color.copy(from.c).lerp(to.c, k);
+      mat.emissive.copy(from.e).lerp(to.e, k);
+      if(t < 1) drainRaf = requestAnimationFrame(step);
+    };
+    step(t0);
   }
 
   // Zoom is done by camera altitude (distance from the surface, in globe radii) so the
@@ -980,8 +1064,11 @@
       d.className = 'dot';
       if(guesses[i]){
         d.classList.add('used');
+        const colour = guesses[i].correct ? '#38e69c' : heatColor(guesses[i].dist);
         if(guesses[i].correct) d.classList.add('used-correct');
-        else d.style.background = heatColor(guesses[i].dist);
+        else d.style.background = colour;
+        d.style.setProperty('--dot-c', colour);
+        if(i === guesses.length - 1) d.classList.add('latest');
       }
       attemptsRow.appendChild(d);
     }
@@ -1177,7 +1264,7 @@
           <div class="name">${g.city.name}</div><div class="ctry">${g.city.country}</div>
         </div>
         <div class="guess-dist">
-          ${g.correct ? '<span class="correct-mark">CORRECT ✓</span>' : `${Math.round(g.dist).toLocaleString('en-GB')} km<small>${compassLabel(g.brng)}</small>`}
+          ${g.correct ? '<span class="correct-mark">Correct ✓</span>' : `${Math.round(g.dist).toLocaleString('en-GB')} km<small>${compassLabel(g.brng)}</small>`}
         </div>
         <div class="guess-arrow">${g.correct ? '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#0fb374" stroke-width="2"/><path d="M7 12l3 3 7-7" stroke="#0fb374" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>' : arrowSvg}</div>
         <div class="proximity-bar"><div class="proximity-fill" style="width:${g.proximity}%"></div></div>
@@ -1197,7 +1284,7 @@
   const confettiLayer = document.getElementById('confettiLayer');
   function launchConfetti(){
     if(!confettiLayer) return;
-    const pieceCount = 480, sparkleCount = 70;
+    const pieceCount = 700, sparkleCount = 100;
     for(let i = 0; i < pieceCount + sparkleCount; i++){
       const sparkle = i >= pieceCount;
       const el = document.createElement('div');
@@ -1227,7 +1314,7 @@
       el.style.setProperty('--swayTime', (1.2 + Math.random() * 1.6) + 's');
       el.style.setProperty('--spin', Math.round(Math.random() * 1080 - 540) + 'deg');
       el.style.setProperty('--tumble', (sparkle ? 0.5 + Math.random() * 0.7 : 0.6 + Math.random() * 1.4) + 's');
-      el.style.animationDuration = (7.2 + Math.random() * 5.6) + 's';
+      el.style.animationDuration = (5.4 + Math.random() * 4.2) + 's'; // 25% quicker than the original 7.2–12.8s
       el.style.animationDelay = (Math.random() * 1.4) + 's';
       el.addEventListener('animationend', () => el.remove());
       confettiLayer.appendChild(el);
@@ -1245,13 +1332,16 @@
     if(won && !restoring) launchConfetti();
     if(!won){
       revealTarget = true;
+      lostMode = true;
+      document.body.classList.add('lost');
       refreshGlobe();
+      drainGlobe(true);
       if(!restoring) globeFocus(targetPrimary);
     }
 
     let html = `<div class="reveal ${won ? 'result-win' : 'result-loss'}">
-      ${won ? '<div class="correct-banner">You win!</div>' : ''}
-      <div class="reveal-status">${won ? 'Solved in ' + guesses.length + (guesses.length === 1 ? ' guess' : ' guesses') : 'Not this time'}</div>
+      ${won ? '<div class="correct-banner">You win!</div>' : '<div class="loss-banner">Out of guesses</div>'}
+      <div class="reveal-status">${won ? 'Solved in ' + guesses.length + (guesses.length === 1 ? ' guess' : ' guesses') : 'The answer was'}</div>
       <div class="reveal-country">${target.capitals.map(c=>c.name).join(' / ')}</div>
       <div class="reveal-subtitle">capital of <span class="country-name">${target.country}</span></div>
       <div class="reveal-section">
@@ -1300,9 +1390,14 @@
     target._idx = idx;
     targetPrimary = target.capitals[0];
     revealTarget = false;
+    if(lostMode){
+      lostMode = false;
+      document.body.classList.remove('lost');
+      drainGlobe(false);
+    }
     refreshGlobe();
     currentPuzzleLabel = practice ? 'practice' : (targetIdx + 1);
-    document.getElementById('puzzleNum').textContent = practice ? 'PRACTICE' : ('#' + (targetIdx + 1));
+    document.getElementById('puzzleNum').textContent = practice ? 'Practice' : ('#' + (targetIdx + 1));
     renderGuesses();
     renderAttempts();
     renderLastGuessWarning();
