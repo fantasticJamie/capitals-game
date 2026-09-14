@@ -276,9 +276,16 @@
 
   /* attempts dots */
   .attempts{display:flex;gap:7px;margin-bottom:18px;}
-  .dot{width:9px;height:9px;border-radius:50%;background:var(--line);}
-  .dot.used-correct{background:var(--correct);}
-  .dot.used-miss{background:var(--miss);}
+  /* Attempt dots start as "unguessed country" blue (the globe's land tint over the ocean, with
+     its border colour) and take on the guessed country's heat colour after each guess:
+     yellow = far, red = close, green = correct. Set inline from heatColor() in renderAttempts. */
+  .dot{
+    width:10px;height:10px;border-radius:50%;box-sizing:border-box;
+    background:#244f74;border:1px solid rgba(126,217,196,0.45);
+    transition:background 0.4s ease, border-color 0.4s ease;
+  }
+  .dot.used{border-color:rgba(255,255,255,0.35);}
+  .dot.used-correct{background:var(--correct);border-color:var(--brass-light);}
 
   /* guess rows */
   .guesses{display:flex;flex-direction:column-reverse;gap:10px;margin-bottom:22px;}
@@ -972,7 +979,9 @@
       const d = document.createElement('div');
       d.className = 'dot';
       if(guesses[i]){
-        d.classList.add(guesses[i].correct ? 'used-correct' : 'used-miss');
+        d.classList.add('used');
+        if(guesses[i].correct) d.classList.add('used-correct');
+        else d.style.background = heatColor(guesses[i].dist);
       }
       attemptsRow.appendChild(d);
     }
