@@ -850,7 +850,7 @@
     const controls = globe.controls();
     controls.enableZoom = false; // a fixed distance, so the mouse wheel still scrolls the page
     controls.autoRotate = !reducedMotion;
-    controls.autoRotateSpeed = -0.45; // negative = surface drifts west-to-east, like the real thing
+    controls.autoRotateSpeed = -0.225; // negative = surface drifts west-to-east, like the real thing (halved from -0.45)
     // The controls set touch-action:none directly on the canvas when they attach, which would
     // silently override our CSS and trap every touch (even a plain vertical scroll) on the
     // globe. Relax that baseline to pan-y so a touch anywhere in the panel is allowed to scroll
