@@ -81,6 +81,11 @@
     font-size:13px;line-height:1.55;color:var(--page-text-soft);
     margin:2px 0 16px;max-width:52ch;
   }
+  /* Colour-key words in the intro, tinted with the actual globe colours they describe. */
+  .intro-blurb .clue-far{color:hsl(55, 88%, 62%);font-weight:600;}
+  .intro-blurb .clue-mid{color:hsl(28, 88%, 58%);font-weight:600;}
+  .intro-blurb .clue-near{color:hsl(0, 88%, 58%);font-weight:600;}
+  .intro-blurb .clue-hit{color:#38e69c;font-weight:600;}
   .meta-row{
     display:flex;justify-content:space-between;align-items:baseline;
     margin:18px 0 16px;
@@ -517,7 +522,7 @@
     </div>
   </div>
 
-  <p class="intro-blurb">You have 6 guesses. After 3 guesses, "Look up country" (top right) unlocks and flashes green.</p>
+  <p class="intro-blurb">You have 6 guesses. Each guess paints its country on the globe on a scale from <span class="clue-far">yellow</span> (far away) through <span class="clue-mid">orange</span> to <span class="clue-near">red</span> (very close) — the warmer the colour, the nearer you are. <span class="clue-hit">Green</span> is the answer. After 3 guesses, "Look up country" (top right) unlocks and flashes green.</p>
 
   <div class="meta-row">
     <span>Puzzle <b id="puzzleNum">—</b></span>
