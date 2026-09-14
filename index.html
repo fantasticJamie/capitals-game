@@ -833,6 +833,10 @@
     // before the controls' listener either way, regardless of the order globe.gl attached its own.
     globePanel.addEventListener('touchstart', (e) => {
       if(!e.touches || !e.touches.length) return;
+      // Only arbitrate touches that land on the globe canvas itself. The zoom buttons sit inside
+      // the panel too, and once you're zoomed in the sphere's circle grows to cover them — a
+      // preventDefault() on their touchstart would swallow the tap and the button never fires.
+      if(e.target && e.target.closest && e.target.closest('button')) return;
       const rect = globePanel.getBoundingClientRect();
       const touch = e.touches[0];
       const dx = touch.clientX - (rect.left + rect.width / 2);
