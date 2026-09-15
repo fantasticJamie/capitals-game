@@ -850,8 +850,8 @@
       .polygonsTransitionDuration(reducedMotion ? 0 : 350)
       .labelText('text')
       .labelColor(() => GLOBE_COLORS.label)
-      .labelSize(1.35)
-      .labelDotRadius(0.45)
+      .labelSize(labelSizeFor(zoomAltitude))
+      .labelDotRadius(labelDotFor(zoomAltitude))
       .labelAltitude(0.02)
       .labelResolution(2)
       .labelsTransitionDuration(0);
@@ -1025,6 +1025,16 @@
   const zoomOutBtn = document.getElementById('globeZoomOut');
   const zoomInBtn = document.getElementById('globeZoomIn');
 
+  // globe.gl label sizes are in globe-surface degrees, so they grow as you zoom in and pile
+  // on top of each other when several guesses share a region. Scale them with camera distance
+  // (proportional to 1 + altitude) so they stay about the same size on screen at every zoom.
+  function labelSizeFor(alt){ return 1.35 * (1 + alt) / (1 + ZOOM_START); }
+  function labelDotFor(alt){ return 0.45 * (1 + alt) / (1 + ZOOM_START); }
+  function applyLabelScale(){
+    if(!globe) return;
+    globe.labelSize(labelSizeFor(zoomAltitude)).labelDotRadius(labelDotFor(zoomAltitude));
+  }
+
   function renderZoomButtons(){
     zoomOutBtn.disabled = !globe || zoomAltitude >= ZOOM_MAX - 0.01;
     zoomInBtn.disabled = !globe || zoomAltitude <= ZOOM_MIN + 0.01;
@@ -1043,6 +1053,7 @@
     const pov = globe.pointOfView();
     pauseIdle();
     globe.pointOfView({ lat: pov.lat, lng: pov.lng, altitude: zoomAltitude }, reducedMotion ? 0 : 350);
+    applyLabelScale();
     renderZoomButtons();
   }
   zoomOutBtn.addEventListener('click', () => globeZoom(ZOOM_STEP));
@@ -1058,6 +1069,7 @@
     if(!globe) return;
     pauseIdle();
     globe.pointOfView({ lat: 25, lng: 0, altitude: zoomAltitude }, reducedMotion ? 0 : 900);
+    applyLabelScale();
   }
 
   function globeFocus(point, instant){
