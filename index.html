@@ -22,6 +22,37 @@
 <meta name="twitter:title" content="Guess The Capital — Daily Capital City Guessing Game">
 <meta name="twitter:description" content="Guess the world capital city of the day in 6 tries, with distance and direction clues.">
 
+<!-- Structured data: tells Google this is a free browser game -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://guessthecapital.com/#website",
+      "url": "https://guessthecapital.com/",
+      "name": "Guess The Capital",
+      "description": "A free daily geography puzzle: guess the world capital city of the day in six tries.",
+      "inLanguage": "en"
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://guessthecapital.com/#game",
+      "name": "Guess The Capital",
+      "url": "https://guessthecapital.com/",
+      "applicationCategory": "GameApplication",
+      "genre": "Geography puzzle",
+      "operatingSystem": "Any (web browser)",
+      "browserRequirements": "Requires JavaScript",
+      "isAccessibleForFree": true,
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" },
+      "description": "Guess the world capital city of the day in 6 tries. Every guess gives a distance and compass-direction clue on a 3D globe. A new capital every day, plus a practice mode with unlimited random rounds.",
+      "isPartOf": { "@id": "https://guessthecapital.com/#website" }
+    }
+  ]
+}
+</script>
+
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Ccircle cx='30' cy='30' r='27' fill='%23dff3ee' stroke='%230a3a63' stroke-width='2'/%3E%3Ccircle cx='30' cy='30' r='21' stroke='%230fb374' stroke-width='1.5' fill='none'/%3E%3Cpath d='M30 8 L34 30 L30 52 L26 30 Z' fill='%230a3a63'/%3E%3Cpath d='M8 30 L30 26 L52 30 L30 34 Z' fill='%230fb374' opacity='0.6'/%3E%3C/svg%3E">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -597,7 +628,7 @@
        on the page needs to change. -->
   <div class="ad-slot" id="adSlotFooter"></div>
 
-  <div class="footnote">Distance is measured great-circle, arrow points from your guess toward today's capital. Populations are approximate, most recent estimates. Countries with more than one official capital accept any of them. Globe outlines from Natural Earth.<br><button type="button" class="reset-link" id="resetBtn">Reset today's puzzle</button><div class="footer-nav"><a class="reset-link" href="about.html">About</a> &nbsp;·&nbsp; <a class="reset-link" href="contact.html">Contact</a> &nbsp;·&nbsp; <a class="reset-link" href="privacy.html">Privacy &amp; cookies</a> &nbsp;·&nbsp; <button type="button" class="reset-link" id="cookieSettingsBtn">Privacy and cookie settings</button></div></div>
+  <div class="footnote">Distance is measured great-circle, arrow points from your guess toward today's capital. Populations are approximate, most recent estimates. Countries with more than one official capital accept any of them. Globe outlines from Natural Earth.<br><button type="button" class="reset-link" id="resetBtn">Reset today's puzzle</button><div class="footer-nav"><a class="reset-link" href="hint.html">Today's hints</a> &nbsp;·&nbsp; <a class="reset-link" href="about.html">About</a> &nbsp;·&nbsp; <a class="reset-link" href="contact.html">Contact</a> &nbsp;·&nbsp; <a class="reset-link" href="privacy.html">Privacy &amp; cookies</a> &nbsp;·&nbsp; <button type="button" class="reset-link" id="cookieSettingsBtn">Privacy and cookie settings</button></div></div>
 
 </div>
 <!-- Country outlines: Natural Earth 1:50m admin-0 map units (public domain), simplified and
