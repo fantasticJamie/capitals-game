@@ -193,7 +193,8 @@
   const errEl = document.getElementById('loadError');
   let DATA, FLAGS = {};
   try {
-    const html = await (await fetch('index.html', { cache: 'force-cache' })).text();
+    // 'no-cache' revalidates with the server each visit, so a stale cached index.html can never make the hints disagree with the game.
+    const html = await (await fetch('index.html', { cache: 'no-cache' })).text();
     const m = html.match(/<script id="capitals-data" type="application\/json">([\s\S]*?)<\/script>/);
     DATA = JSON.parse(m[1]);
     // Country → ISO code map lives in index.html (FLAG_CODES); reuse it here for the flag clue.
