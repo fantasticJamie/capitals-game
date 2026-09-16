@@ -16,59 +16,18 @@
 <meta property="og:description" content="Guess the world capital city of the day in 6 tries. Distance and direction clues, a country-search assist, and a population reveal at the end.">
 <meta property="og:url" content="https://guessthecapital.com/">
 <meta property="og:site_name" content="Guess The Capital">
-<meta property="og:image" content="https://guessthecapital.com/og-image.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Guess The Capital — a daily capital city puzzle">
 
 <!-- Twitter card -->
-<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Guess The Capital — Daily Capital City Guessing Game">
 <meta name="twitter:description" content="Guess the world capital city of the day in 6 tries, with distance and direction clues.">
-<meta name="twitter:image" content="https://guessthecapital.com/og-image.png">
 
-<!-- Structured data: tells Google this is a free browser game -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebSite",
-      "@id": "https://guessthecapital.com/#website",
-      "url": "https://guessthecapital.com/",
-      "name": "Guess The Capital",
-      "description": "A free daily geography puzzle: guess the world capital city of the day in six tries.",
-      "inLanguage": "en"
-    },
-    {
-      "@type": "WebApplication",
-      "@id": "https://guessthecapital.com/#game",
-      "name": "Guess The Capital",
-      "url": "https://guessthecapital.com/",
-      "applicationCategory": "GameApplication",
-      "genre": "Geography puzzle",
-      "operatingSystem": "Any (web browser)",
-      "browserRequirements": "Requires JavaScript",
-      "isAccessibleForFree": true,
-      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" },
-      "description": "Guess the world capital city of the day in 6 tries. Every guess gives a distance and compass-direction clue on a 3D globe. A new capital every day, plus a practice mode with unlimited random rounds.",
-      "isPartOf": { "@id": "https://guessthecapital.com/#website" }
-    }
-  ]
-}
-</script>
-
-<link rel="icon" type="image/svg+xml" href="logo-globe.svg">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Ccircle cx='30' cy='30' r='27' fill='%23dff3ee' stroke='%230a3a63' stroke-width='2'/%3E%3Ccircle cx='30' cy='30' r='21' stroke='%230fb374' stroke-width='1.5' fill='none'/%3E%3Cpath d='M30 8 L34 30 L30 52 L26 30 Z' fill='%230a3a63'/%3E%3Cpath d='M8 30 L30 26 L52 30 L30 34 Z' fill='%230fb374' opacity='0.6'/%3E%3C/svg%3E">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <script defer src="https://cdn.jsdelivr.net/npm/globe.gl@2/dist/globe.gl.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
-<!-- Google AdSense loader. Also serves the UK/EU consent banner once Privacy & messaging is on in the AdSense dashboard. -->
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3782924447934282"
-     crossorigin="anonymous"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -103,7 +62,6 @@
   /* header */
   .header{display:flex;align-items:center;gap:14px;margin-bottom:6px;}
   .compass{width:52px;height:52px;flex-shrink:0;}
-  .titles h1 .accent{color:#7fe3a3;}
   .titles h1{
     font-family:'Fraunces',serif;
     font-optical-sizing:auto;
@@ -520,6 +478,12 @@
   .reveal-subtitle .country-name{
     font-weight:700;color:var(--ink);font-size:15px;letter-spacing:0.2px;
   }
+  .reveal-subtitle .country-flag{
+    display:inline-block;width:40px;height:30px;object-fit:cover;
+    margin-left:8px;vertical-align:baseline;border-radius:3px;
+    box-shadow:0 0 0 1px rgba(0,0,0,0.12);
+  }
+  .reveal.result-loss .reveal-subtitle .country-flag{filter:grayscale(0.6);opacity:0.85;}
   .reveal-section{margin-bottom:14px;}
   .reveal-section h4{
     margin:0 0 8px;font-size:11.5px;letter-spacing:0.3px;
@@ -548,13 +512,6 @@
     transition:opacity 0.2s ease;
   }
   .reset-link:hover, .reset-link:focus{opacity:0.85;text-decoration:underline;}
-  /* Footer ad slot. Hidden while empty so the page looks normal before AdSense is live;
-     once an ad unit (<ins>) is pasted inside it, it shows. min-height stops the layout jumping
-     when the ad loads. */
-  .ad-slot{margin:0 0 22px;text-align:center;min-height:100px;}
-  .ad-slot:empty{display:none;}
-  .footer-nav{margin-top:8px;}
-  .footer-nav a, .footer-nav button{margin:0 2px;}
   .footnote{
     text-align:center;font-size:11px;color:var(--page-text-soft);margin-top:24px;line-height:1.6;
   }
@@ -565,9 +522,16 @@
 <div class="wrap">
 
   <div class="header">
-    <img class="compass" src="logo-globe.svg" alt="Guess The Capital globe" width="44" height="44">
+    <svg class="compass" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="30" cy="30" r="27" stroke="#dff3ee" stroke-width="1.5"/>
+      <circle cx="30" cy="30" r="21" stroke="#0fb374" stroke-width="1"/>
+      <path d="M30 8 L34 30 L30 52 L26 30 Z" fill="#dff3ee"/>
+      <path d="M8 30 L30 26 L52 30 L30 34 Z" fill="#0fb374" opacity="0.7"/>
+      <circle cx="30" cy="30" r="3" fill="#0fb374"/>
+      <text x="30" y="7" font-size="6" fill="#dff3ee" text-anchor="middle" font-family="IBM Plex Mono, monospace">N</text>
+    </svg>
     <div class="titles">
-      <h1>Guess The <span class="accent">Capital</span></h1>
+      <h1>Guess The Capital</h1>
       <p>Guess the capital city. Every arrow tells you which way to look.</p>
     </div>
   </div>
@@ -624,12 +588,7 @@
 
   <div class="guesses" id="guessesList"></div>
 
-  <!-- Footer ad slot. Paste the AdSense ad unit code (the <ins class="adsbygoogle" ...> block plus
-       its (adsbygoogle = window.adsbygoogle || []).push({}) script) inside this div. Nothing else
-       on the page needs to change. -->
-  <div class="ad-slot" id="adSlotFooter"></div>
-
-  <div class="footnote">Distance is measured great-circle, arrow points from your guess toward today's capital. Populations are approximate, most recent estimates. Countries with more than one official capital accept any of them. Globe outlines from Natural Earth.<br><button type="button" class="reset-link" id="resetBtn">Reset today's puzzle</button><div class="footer-nav"><a class="reset-link" href="hint.html">Today's hints</a> &nbsp;·&nbsp; <a class="reset-link" href="about.html">About</a> &nbsp;·&nbsp; <a class="reset-link" href="contact.html">Contact</a> &nbsp;·&nbsp; <a class="reset-link" href="privacy.html">Privacy &amp; cookies</a> &nbsp;·&nbsp; <button type="button" class="reset-link" id="cookieSettingsBtn">Privacy and cookie settings</button></div></div>
+  <div class="footnote">Distance is measured great-circle, arrow points from your guess toward today's capital. Populations are approximate, most recent estimates. Countries with more than one official capital accept any of them. Globe outlines from Natural Earth.<br><button type="button" class="reset-link" id="resetBtn">Reset today's puzzle</button> &nbsp;·&nbsp; <a class="reset-link" href="privacy.html">Privacy &amp; cookies</a></div>
 
 </div>
 <!-- Country outlines: Natural Earth 1:50m admin-0 map units (public domain), simplified and
@@ -643,6 +602,48 @@
 <script>
 (function(){
   const DATA = JSON.parse(document.getElementById('capitals-data').textContent);
+
+  // ISO 3166-1 alpha-2 codes for the reveal-card flag (served from flagcdn.com).
+  const FLAG_CODES = {
+    "Afghanistan":"af","Albania":"al","Algeria":"dz","Andorra":"ad","Angola":"ao","Antigua and Barbuda":"ag",
+    "Argentina":"ar","Armenia":"am","Australia":"au","Austria":"at","Azerbaijan":"az","Bahamas":"bs",
+    "Bahrain":"bh","Bangladesh":"bd","Barbados":"bb","Belarus":"by","Belgium":"be","Belize":"bz",
+    "Benin":"bj","Bhutan":"bt","Bolivia":"bo","Bosnia and Herzegovina":"ba","Botswana":"bw","Brazil":"br",
+    "Brunei":"bn","Bulgaria":"bg","Burkina Faso":"bf","Burundi":"bi","Cabo Verde":"cv","Cambodia":"kh",
+    "Cameroon":"cm","Canada":"ca","Central African Republic":"cf","Chad":"td","Chile":"cl","China":"cn",
+    "Colombia":"co","Comoros":"km","Congo (Republic of the)":"cg","Costa Rica":"cr","Ivory Coast":"ci","Croatia":"hr",
+    "Cuba":"cu","Cyprus":"cy","Czechia":"cz","North Korea":"kp","DR Congo":"cd","Denmark":"dk",
+    "Djibouti":"dj","Dominica":"dm","Dominican Republic":"do","Ecuador":"ec","Egypt":"eg","El Salvador":"sv",
+    "Equatorial Guinea":"gq","Eritrea":"er","Estonia":"ee","Eswatini":"sz","Ethiopia":"et","Fiji":"fj",
+    "Finland":"fi","France":"fr","Gabon":"ga","Gambia":"gm","Georgia":"ge","Germany":"de",
+    "Ghana":"gh","Greece":"gr","Greenland":"gl","Grenada":"gd","Guatemala":"gt","Guinea":"gn",
+    "Guinea-Bissau":"gw","Guyana":"gy","Haiti":"ht","Vatican City":"va","Honduras":"hn","Hungary":"hu",
+    "Iceland":"is","India":"in","Indonesia":"id","Iran":"ir","Iraq":"iq","Ireland":"ie",
+    "Israel":"il","Italy":"it","Jamaica":"jm","Japan":"jp","Jordan":"jo","Kazakhstan":"kz",
+    "Kenya":"ke","Kiribati":"ki","Kosovo":"xk","Kuwait":"kw","Kyrgyzstan":"kg","Laos":"la",
+    "Latvia":"lv","Lebanon":"lb","Lesotho":"ls","Liberia":"lr","Libya":"ly","Liechtenstein":"li",
+    "Lithuania":"lt","Luxembourg":"lu","Madagascar":"mg","Malawi":"mw","Malaysia":"my","Maldives":"mv",
+    "Mali":"ml","Malta":"mt","Marshall Islands":"mh","Mauritania":"mr","Mauritius":"mu","Mexico":"mx",
+    "Micronesia":"fm","Moldova":"md","Monaco":"mc","Mongolia":"mn","Montenegro":"me","Morocco":"ma",
+    "Mozambique":"mz","Myanmar":"mm","Namibia":"na","Nauru":"nr","Nepal":"np","Netherlands":"nl",
+    "New Zealand":"nz","Nicaragua":"ni","Niger":"ne","Nigeria":"ng","North Macedonia":"mk","Norway":"no",
+    "Oman":"om","Pakistan":"pk","Palau":"pw","Palestine":"ps","Panama":"pa","Papua New Guinea":"pg",
+    "Paraguay":"py","Peru":"pe","Philippines":"ph","Poland":"pl","Portugal":"pt","Qatar":"qa",
+    "South Korea":"kr","Romania":"ro","Russia":"ru","Rwanda":"rw","Saint Kitts and Nevis":"kn","Saint Lucia":"lc",
+    "Saint Vincent and the Grenadines":"vc","Samoa":"ws","San Marino":"sm","Sao Tome and Principe":"st","Saudi Arabia":"sa","Senegal":"sn",
+    "Serbia":"rs","Seychelles":"sc","Sierra Leone":"sl","Singapore":"sg","Slovakia":"sk","Slovenia":"si",
+    "Solomon Islands":"sb","Somalia":"so","South Africa":"za","South Sudan":"ss","Spain":"es","Sri Lanka":"lk",
+    "Sudan":"sd","Suriname":"sr","Sweden":"se","Switzerland":"ch","Syria":"sy","Taiwan":"tw",
+    "Tajikistan":"tj","Tanzania":"tz","Thailand":"th","Timor-Leste":"tl","Togo":"tg","Tonga":"to",
+    "Trinidad and Tobago":"tt","Tunisia":"tn","Turkey":"tr","Turkmenistan":"tm","Tuvalu":"tv","Uganda":"ug",
+    "Ukraine":"ua","United Arab Emirates":"ae","United Kingdom":"gb","United States":"us","Uruguay":"uy","Uzbekistan":"uz",
+    "Vanuatu":"vu","Venezuela":"ve","Vietnam":"vn","Yemen":"ye","Zambia":"zm","Zimbabwe":"zw"
+  };
+  function flagHtml(country){
+    const code = FLAG_CODES[country];
+    if(!code) return '';
+    return `<img class="country-flag" src="https://flagcdn.com/w80/${code}.png" srcset="https://flagcdn.com/w160/${code}.png 2x" width="40" height="30" alt="Flag of ${country}" loading="lazy">`;
+  }
   const MAX_GUESSES = 6;
 
   const flatCities = [];
@@ -800,16 +801,6 @@
   const guessesList = document.getElementById('guessesList');
   const attemptsRow = document.getElementById('attemptsRow');
   const revealZone = document.getElementById('revealZone');
-  // "Privacy and cookie settings": re-opens Google's consent banner (AdSense Privacy & messaging)
-  // so UK/EU visitors can change their choice. Hidden until that banner's script is on the page.
-  const cookieSettingsBtn = document.getElementById('cookieSettingsBtn');
-  cookieSettingsBtn.style.display = 'none';
-  window.googlefc = window.googlefc || {};
-  googlefc.callbackQueue = googlefc.callbackQueue || [];
-  googlefc.callbackQueue.push({ 'CONSENT_DATA_READY': () => { cookieSettingsBtn.style.display = ''; } });
-  cookieSettingsBtn.addEventListener('click', () => {
-    if (window.googlefc && typeof googlefc.showRevocationMessage === 'function') googlefc.showRevocationMessage();
-  });
   const lastGuessWarning = document.getElementById('lastGuessWarning');
   const peekBox = document.getElementById('peekBox');
   const peekInput = document.getElementById('peekInput');
@@ -1464,7 +1455,7 @@
       ${won ? '<div class="correct-banner">You win!</div>' : '<div class="loss-banner">Out of guesses</div>'}
       <div class="reveal-status">${won ? 'Solved in ' + guesses.length + (guesses.length === 1 ? ' guess' : ' guesses') : 'The answer was'}</div>
       <div class="reveal-country">${target.capitals.map(c=>c.name).join(' / ')}</div>
-      <div class="reveal-subtitle">capital of <span class="country-name">${target.country}</span></div>
+      <div class="reveal-subtitle">capital of <span class="country-name">${target.country}</span>${flagHtml(target.country)}</div>
       <div class="reveal-section">
         ${target.capitals.map(cityLineHtml).join('')}
       </div>`;
