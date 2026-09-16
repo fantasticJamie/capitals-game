@@ -520,12 +520,12 @@
   .reveal-subtitle .country-name{
     font-weight:700;color:var(--ink);font-size:15px;letter-spacing:0.2px;
   }
-  .reveal-subtitle .country-flag{
+  .reveal-flag{margin:-6px 0 14px;line-height:0;}
+  .reveal-flag .country-flag{
     display:inline-block;width:40px;height:30px;object-fit:cover;
-    margin-left:8px;vertical-align:baseline;border-radius:3px;
-    box-shadow:0 0 0 1px rgba(0,0,0,0.12);
+    border-radius:3px;box-shadow:0 0 0 1px rgba(0,0,0,0.12);
   }
-  .reveal.result-loss .reveal-subtitle .country-flag{filter:grayscale(0.6);opacity:0.85;}
+  .reveal.result-loss .reveal-flag .country-flag{filter:grayscale(0.6);opacity:0.85;}
   .reveal-section{margin-bottom:14px;}
   .reveal-section h4{
     margin:0 0 8px;font-size:11.5px;letter-spacing:0.3px;
@@ -689,7 +689,7 @@
   function flagHtml(country){
     const code = FLAG_CODES[country];
     if(!code) return '';
-    return `<img class="country-flag" src="https://flagcdn.com/w80/${code}.png" srcset="https://flagcdn.com/w160/${code}.png 2x" width="40" height="30" alt="Flag of ${country}" loading="lazy">`;
+    return `<div class="reveal-flag"><img class="country-flag" src="https://flagcdn.com/w80/${code}.png" srcset="https://flagcdn.com/w160/${code}.png 2x" width="40" height="30" alt="Flag of ${country}" loading="lazy"></div>`;
   }
   const MAX_GUESSES = 6;
 
@@ -1512,7 +1512,8 @@
       ${won ? '<div class="correct-banner">You win!</div>' : '<div class="loss-banner">Out of guesses</div>'}
       <div class="reveal-status">${won ? 'Solved in ' + guesses.length + (guesses.length === 1 ? ' guess' : ' guesses') : 'The answer was'}</div>
       <div class="reveal-country">${target.capitals.map(c=>c.name).join(' / ')}</div>
-      <div class="reveal-subtitle">capital of <span class="country-name">${target.country}</span>${flagHtml(target.country)}</div>
+      <div class="reveal-subtitle">capital of <span class="country-name">${target.country}</span></div>
+      ${flagHtml(target.country)}
       <div class="reveal-section">
         ${target.capitals.map(cityLineHtml).join('')}
       </div>`;
