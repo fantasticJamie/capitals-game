@@ -73,6 +73,11 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;600&display=swap"></noscript>
 <style>
+  /* Metric-matched fallbacks: while the web fonts load, text is drawn in a system font scaled
+     to take up the same space, so nothing moves when the real font arrives. */
+  @font-face{font-family:'Inter Fallback';src:local('Arial');size-adjust:107%;ascent-override:90%;descent-override:22.5%;line-gap-override:0%;}
+  @font-face{font-family:'Plex Mono Fallback';src:local('Courier New'),local('Courier');size-adjust:100%;ascent-override:102.5%;descent-override:27.5%;line-gap-override:0%;}
+  @font-face{font-family:'Fraunces Fallback';src:local('Georgia');size-adjust:103%;ascent-override:96%;descent-override:26%;line-gap-override:0%;}
   :root{
     --paper: #0a2540;
     --paper-dark: #c8ebe0;
@@ -96,7 +101,7 @@
       radial-gradient(circle at 88% 92%, rgba(14,132,184,0.26), transparent 45%),
       var(--paper);
     color:var(--page-text);
-    font-family:'Inter',sans-serif;
+    font-family:'Inter','Inter Fallback',sans-serif;
     min-height:100vh;
     padding: 28px 16px 60px;
   }
@@ -107,13 +112,14 @@
   .compass{width:52px;height:52px;flex-shrink:0;}
   .titles h1 .accent{color:#7fe3a3;}
   .titles h1{
-    font-family:'Fraunces',serif;
+    font-family:'Fraunces','Fraunces Fallback',serif;
     font-optical-sizing:auto;
     font-weight:600;
     font-size:28px;
     letter-spacing:0.3px;
     margin:0;
     color:var(--page-text);
+    white-space:nowrap; /* the title never wraps, so a font swap can't change its height */
   }
   .titles p{
     margin:2px 0 0;
@@ -135,7 +141,7 @@
     margin:18px 0 16px;
     padding-bottom:12px;
     border-bottom:1px solid var(--line);
-    font-family:'IBM Plex Mono',monospace;
+    font-family:'IBM Plex Mono','Plex Mono Fallback',monospace;
     font-size:12px;
     color:var(--page-text-soft);
     letter-spacing:0.4px;
@@ -144,7 +150,7 @@
   .countdown-row{
     text-align:right;
     margin:-10px 0 16px;
-    font-family:'IBM Plex Mono',monospace;
+    font-family:'IBM Plex Mono','Plex Mono Fallback',monospace;
     font-size:11px;
     color:var(--page-text-soft);
     letter-spacing:0.3px;
@@ -152,7 +158,7 @@
   }
   .countdown-row #countdownTimer{color:var(--page-text);font-weight:600;}
   .practice-row{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
-  .practice-label{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--page-text-soft);}
+  .practice-label{font-family:'IBM Plex Mono','Plex Mono Fallback',monospace;font-size:12.5px;color:var(--page-text-soft);}
   .switch{position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0;}
   .switch input{opacity:0;width:0;height:0;}
   .slider{
@@ -175,7 +181,7 @@
   .peek-box{position:relative;margin-left:auto;}
   .peek-input{
     width:130px;
-    font-family:'IBM Plex Mono',monospace;font-size:11.5px;
+    font-family:'IBM Plex Mono','Plex Mono Fallback',monospace;font-size:11.5px;
     padding:5px 9px;border:1.5px solid var(--line);border-radius:7px;
     background:transparent;color:var(--page-text-soft);outline:none;
   }
@@ -199,7 +205,7 @@
   }
   .peek-results:empty{display:none;padding:0;border:none;box-shadow:none;}
   .peek-row, .peek-empty{
-    font-family:'IBM Plex Mono',monospace;font-size:11.5px;
+    font-family:'IBM Plex Mono','Plex Mono Fallback',monospace;font-size:11.5px;
     padding:4px 8px;border-radius:6px;
     display:flex;justify-content:space-between;gap:10px;
     user-select:none; /* it's a peek, not something to copy-paste as your guess */
@@ -210,7 +216,7 @@
 
   .search-input{
     width:100%;
-    font-family:'Inter',sans-serif;
+    font-family:'Inter','Inter Fallback',sans-serif;
     font-size:16px;
     padding:14px 44px 14px 16px;
     border:1.5px solid var(--ink);
@@ -243,7 +249,7 @@
   .dropdown-item:last-child{border-bottom:none;}
   .dropdown-item:hover, .dropdown-item.active{background:rgba(15,179,116,0.14);}
   .dropdown-item .city{font-weight:600;color:var(--ink);}
-  .dropdown-item .country{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-soft);}
+  .dropdown-item .country{font-family:'IBM Plex Mono','Plex Mono Fallback',monospace;font-size:11.5px;color:var(--ink-soft);}
   .dropdown-empty{padding:14px 16px;font-size:13px;color:var(--ink-soft);font-style:italic;}
 
   /* globe: sits between the search box and the guess list. Guessed countries are painted
@@ -264,14 +270,14 @@
   .globe-panel canvas{display:block;outline:none;}
   .globe-status{
     position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-    font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--page-text-soft);
+    font-family:'IBM Plex Mono','Plex Mono Fallback',monospace;font-size:12px;color:var(--page-text-soft);
     text-align:center;padding:0 24px;pointer-events:none;z-index:5;
   }
   .globe-status:empty{display:none;}
   .globe-zoom{
     position:absolute;top:24%;z-index:5;width:34px;height:34px;border-radius:50%;
     border:1.5px solid var(--line);background:rgba(10,37,64,0.7);color:var(--page-text);
-    font-family:'IBM Plex Mono',monospace;font-size:18px;line-height:1;cursor:pointer;
+    font-family:'IBM Plex Mono','Plex Mono Fallback',monospace;font-size:18px;line-height:1;cursor:pointer;
     display:flex;align-items:center;justify-content:center;padding:0;
     transition:background 0.15s ease, border-color 0.15s ease;
   }
@@ -281,7 +287,7 @@
   .globe-zoom.in{right:10px;}
   .globe-hint{
     position:absolute;z-index:5;left:50%;transform:translateX(-50%);bottom:10px;
-    font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.3px;
+    font-family:'IBM Plex Mono','Plex Mono Fallback',monospace;font-size:10.5px;letter-spacing:0.3px;
     color:var(--page-text-soft);opacity:0.7;pointer-events:none;
   }
 
@@ -301,7 +307,7 @@
   .globe-flash .flash-arrow svg{width:100%;height:100%;display:block;}
   .globe-flash .flash-arrow.correct{width:clamp(130px, 38%, 170px);}
   .globe-flash .flash-dist{
-    font-family:'IBM Plex Mono',monospace;font-weight:700;
+    font-family:'IBM Plex Mono','Plex Mono Fallback',monospace;font-weight:700;
     font-size:clamp(24px, 7vw, 34px);letter-spacing:0.5px;line-height:1.1;
     color:#ffffff;text-shadow:0 2px 12px rgba(0,0,0,0.7), 0 0 2px rgba(0,0,0,0.9);
     text-align:center;
@@ -330,7 +336,7 @@
      small pill with a sliding circle, reusing the practice-mode switch styling. */
   .unit-toggle{
     margin-left:auto;display:inline-flex;align-items:center;gap:7px;cursor:pointer;
-    font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:600;letter-spacing:0.3px;
+    font-family:'IBM Plex Mono','Plex Mono Fallback',monospace;font-size:11.5px;font-weight:600;letter-spacing:0.3px;
     color:var(--page-text-soft);user-select:none;
   }
   .unit-toggle .unit-label{transition:color 0.2s ease;}
@@ -432,15 +438,15 @@
     .confetti-piece .inner{animation:none;}
   }
   .guess-num{
-    font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);
+    font-family:'IBM Plex Mono','Plex Mono Fallback',monospace;font-size:12px;color:var(--ink-soft);
     width:28px;height:28px;border-radius:50%;background:var(--paper-dark);
     display:flex;align-items:center;justify-content:center;
   }
   .guess-city{min-width:0;}
   .guess-city .name{font-weight:600;font-size:15px;color:var(--ink);}
-  .guess-city .ctry{font-size:11.5px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;}
+  .guess-city .ctry{font-size:11.5px;color:var(--ink-soft);font-family:'IBM Plex Mono','Plex Mono Fallback',monospace;}
   .last-guess-warning{
-    font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;
+    font-family:'IBM Plex Mono','Plex Mono Fallback',monospace;font-size:13px;font-weight:700;
     letter-spacing:0.4px;color:#ff7a68;line-height:1;display:none;
   }
   .last-guess-warning.show{display:block;animation:flash-warning 0.9s ease-in-out infinite;}
@@ -449,14 +455,14 @@
     50%{opacity:0.25;}
   }
   .guess-dist{
-    font-family:'IBM Plex Mono',monospace;
+    font-family:'IBM Plex Mono','Plex Mono Fallback',monospace;
     font-size:13px;text-align:right;color:var(--ink);white-space:nowrap;
   }
   .guess-dist small{display:block;font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.5px;}
   .guess-arrow{width:30px;height:30px;flex-shrink:0;}
   .guess-arrow svg{width:100%;height:100%;transition:transform 0.4s ease;}
   .correct-mark{
-    font-family:'IBM Plex Mono',monospace;color:var(--correct);font-weight:600;font-size:13px;
+    font-family:'IBM Plex Mono','Plex Mono Fallback',monospace;color:var(--correct);font-weight:600;font-size:13px;
   }
   .proximity-bar{
     grid-column:1 / -1;
@@ -486,7 +492,7 @@
     box-shadow:0 0 22px 5px rgba(224,57,43,0.35);
   }
   .loss-banner{
-    font-family:'Fraunces',serif;font-weight:700;font-size:38px;
+    font-family:'Fraunces','Fraunces Fallback',serif;font-weight:700;font-size:38px;
     color:#c4c4c4;text-align:center;margin:-4px 0 12px;
     letter-spacing:0.5px;text-shadow:0 2px 8px rgba(0,0,0,0.3);
   }
@@ -503,20 +509,20 @@
   .reveal.result-loss .reveal-note{color:#b4b4b4;}
 
   .correct-banner{
-    font-family:'Fraunces',serif;font-weight:700;font-size:38px;
+    font-family:'Fraunces','Fraunces Fallback',serif;font-weight:700;font-size:38px;
     color:var(--correct);text-align:center;margin:-4px 0 12px;
     letter-spacing:0.5px;
   }
   .reveal-status{
-    font-family:'IBM Plex Mono',monospace;
+    font-family:'IBM Plex Mono','Plex Mono Fallback',monospace;
     font-size:12px;letter-spacing:0.3px;
     color:var(--ink-soft);margin-bottom:4px;
   }
   .reveal-country{
-    font-family:'Fraunces',serif;font-weight:600;font-size:28px;color:var(--ink);margin:0;
+    font-family:'Fraunces','Fraunces Fallback',serif;font-weight:600;font-size:28px;color:var(--ink);margin:0;
   }
   .reveal-subtitle{
-    font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--ink-soft);
+    font-family:'IBM Plex Mono','Plex Mono Fallback',monospace;font-size:13px;color:var(--ink-soft);
     margin:2px 0 14px;letter-spacing:0.3px;
   }
   .reveal-subtitle .country-name{
@@ -525,7 +531,7 @@
   .reveal-section{margin-bottom:14px;}
   .reveal-section h4{
     margin:0 0 8px;font-size:11.5px;letter-spacing:0.3px;
-    color:var(--brass);font-family:'IBM Plex Mono',monospace;font-weight:600;
+    color:var(--brass);font-family:'IBM Plex Mono','Plex Mono Fallback',monospace;font-weight:600;
   }
   .city-line{
     display:flex;justify-content:space-between;align-items:baseline;
@@ -535,17 +541,17 @@
   .city-line:last-child{border-bottom:none;}
   .city-line .cname{color:var(--ink);}
   .city-line .cnote{font-size:11.5px;color:var(--ink-soft);font-style:italic;margin-left:6px;}
-  .city-line .cpop{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--ink);}
+  .city-line .cpop{font-family:'IBM Plex Mono','Plex Mono Fallback',monospace;font-weight:600;color:var(--ink);}
   .reveal-note{font-size:12.5px;color:var(--ink-soft);margin-top:10px;line-height:1.5;}
   .next-btn{
     margin-top:16px;width:100%;padding:12px;border-radius:var(--radius);
     border:1.5px solid var(--ink);background:var(--ink);color:#dff3ee;
-    font-family:'Inter',sans-serif;font-weight:600;font-size:14px;cursor:pointer;
+    font-family:'Inter','Inter Fallback',sans-serif;font-weight:600;font-size:14px;cursor:pointer;
   }
   .next-btn:hover{background:#135f8c;}
   .reset-link{
     background:none;border:none;padding:0;margin-top:6px;display:inline-block;
-    font-family:'IBM Plex Mono',monospace;font-size:9.5px;
+    font-family:'IBM Plex Mono','Plex Mono Fallback',monospace;font-size:9.5px;
     color:var(--page-text-soft);opacity:0.3;text-decoration:none;cursor:pointer;
     transition:opacity 0.2s ease;
   }
