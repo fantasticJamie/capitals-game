@@ -69,7 +69,9 @@
 <!-- Google AdSense loader. Also serves the UK/EU consent banner once Privacy & messaging is on in the AdSense dashboard. -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3782924447934282"
      crossorigin="anonymous"></script>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Fonts load off the critical path: text renders in the fallback font immediately, then swaps. -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;600&display=swap"></noscript>
 <style>
   :root{
     --paper: #0a2540;
@@ -520,12 +522,6 @@
   .reveal-subtitle .country-name{
     font-weight:700;color:var(--ink);font-size:15px;letter-spacing:0.2px;
   }
-  .reveal-flag{margin:-6px 0 14px;line-height:0;}
-  .reveal-flag .country-flag{
-    display:inline-block;width:40px;height:30px;object-fit:cover;
-    border-radius:3px;box-shadow:0 0 0 1px rgba(0,0,0,0.12);
-  }
-  .reveal.result-loss .reveal-flag .country-flag{filter:grayscale(0.6);opacity:0.85;}
   .reveal-section{margin-bottom:14px;}
   .reveal-section h4{
     margin:0 0 8px;font-size:11.5px;letter-spacing:0.3px;
@@ -649,48 +645,6 @@
 <script>
 (function(){
   const DATA = JSON.parse(document.getElementById('capitals-data').textContent);
-
-  // ISO 3166-1 alpha-2 codes for the reveal-card flag (served from flagcdn.com).
-  const FLAG_CODES = {
-    "Afghanistan":"af","Albania":"al","Algeria":"dz","Andorra":"ad","Angola":"ao","Antigua and Barbuda":"ag",
-    "Argentina":"ar","Armenia":"am","Australia":"au","Austria":"at","Azerbaijan":"az","Bahamas":"bs",
-    "Bahrain":"bh","Bangladesh":"bd","Barbados":"bb","Belarus":"by","Belgium":"be","Belize":"bz",
-    "Benin":"bj","Bhutan":"bt","Bolivia":"bo","Bosnia and Herzegovina":"ba","Botswana":"bw","Brazil":"br",
-    "Brunei":"bn","Bulgaria":"bg","Burkina Faso":"bf","Burundi":"bi","Cabo Verde":"cv","Cambodia":"kh",
-    "Cameroon":"cm","Canada":"ca","Central African Republic":"cf","Chad":"td","Chile":"cl","China":"cn",
-    "Colombia":"co","Comoros":"km","Congo (Republic of the)":"cg","Costa Rica":"cr","Ivory Coast":"ci","Croatia":"hr",
-    "Cuba":"cu","Cyprus":"cy","Czechia":"cz","North Korea":"kp","DR Congo":"cd","Denmark":"dk",
-    "Djibouti":"dj","Dominica":"dm","Dominican Republic":"do","Ecuador":"ec","Egypt":"eg","El Salvador":"sv",
-    "Equatorial Guinea":"gq","Eritrea":"er","Estonia":"ee","Eswatini":"sz","Ethiopia":"et","Fiji":"fj",
-    "Finland":"fi","France":"fr","Gabon":"ga","Gambia":"gm","Georgia":"ge","Germany":"de",
-    "Ghana":"gh","Greece":"gr","Greenland":"gl","Grenada":"gd","Guatemala":"gt","Guinea":"gn",
-    "Guinea-Bissau":"gw","Guyana":"gy","Haiti":"ht","Vatican City":"va","Honduras":"hn","Hungary":"hu",
-    "Iceland":"is","India":"in","Indonesia":"id","Iran":"ir","Iraq":"iq","Ireland":"ie",
-    "Israel":"il","Italy":"it","Jamaica":"jm","Japan":"jp","Jordan":"jo","Kazakhstan":"kz",
-    "Kenya":"ke","Kiribati":"ki","Kosovo":"xk","Kuwait":"kw","Kyrgyzstan":"kg","Laos":"la",
-    "Latvia":"lv","Lebanon":"lb","Lesotho":"ls","Liberia":"lr","Libya":"ly","Liechtenstein":"li",
-    "Lithuania":"lt","Luxembourg":"lu","Madagascar":"mg","Malawi":"mw","Malaysia":"my","Maldives":"mv",
-    "Mali":"ml","Malta":"mt","Marshall Islands":"mh","Mauritania":"mr","Mauritius":"mu","Mexico":"mx",
-    "Micronesia":"fm","Moldova":"md","Monaco":"mc","Mongolia":"mn","Montenegro":"me","Morocco":"ma",
-    "Mozambique":"mz","Myanmar":"mm","Namibia":"na","Nauru":"nr","Nepal":"np","Netherlands":"nl",
-    "New Zealand":"nz","Nicaragua":"ni","Niger":"ne","Nigeria":"ng","North Macedonia":"mk","Norway":"no",
-    "Oman":"om","Pakistan":"pk","Palau":"pw","Palestine":"ps","Panama":"pa","Papua New Guinea":"pg",
-    "Paraguay":"py","Peru":"pe","Philippines":"ph","Poland":"pl","Portugal":"pt","Qatar":"qa",
-    "South Korea":"kr","Romania":"ro","Russia":"ru","Rwanda":"rw","Saint Kitts and Nevis":"kn","Saint Lucia":"lc",
-    "Saint Vincent and the Grenadines":"vc","Samoa":"ws","San Marino":"sm","Sao Tome and Principe":"st","Saudi Arabia":"sa","Senegal":"sn",
-    "Serbia":"rs","Seychelles":"sc","Sierra Leone":"sl","Singapore":"sg","Slovakia":"sk","Slovenia":"si",
-    "Solomon Islands":"sb","Somalia":"so","South Africa":"za","South Sudan":"ss","Spain":"es","Sri Lanka":"lk",
-    "Sudan":"sd","Suriname":"sr","Sweden":"se","Switzerland":"ch","Syria":"sy","Taiwan":"tw",
-    "Tajikistan":"tj","Tanzania":"tz","Thailand":"th","Timor-Leste":"tl","Togo":"tg","Tonga":"to",
-    "Trinidad and Tobago":"tt","Tunisia":"tn","Turkey":"tr","Turkmenistan":"tm","Tuvalu":"tv","Uganda":"ug",
-    "Ukraine":"ua","United Arab Emirates":"ae","United Kingdom":"gb","United States":"us","Uruguay":"uy","Uzbekistan":"uz",
-    "Vanuatu":"vu","Venezuela":"ve","Vietnam":"vn","Yemen":"ye","Zambia":"zm","Zimbabwe":"zw"
-  };
-  function flagHtml(country){
-    const code = FLAG_CODES[country];
-    if(!code) return '';
-    return `<div class="reveal-flag"><img class="country-flag" src="https://flagcdn.com/w80/${code}.png" srcset="https://flagcdn.com/w160/${code}.png 2x" width="40" height="30" alt="Flag of ${country}" loading="lazy"></div>`;
-  }
   const MAX_GUESSES = 6;
 
   const flatCities = [];
@@ -1513,7 +1467,6 @@
       <div class="reveal-status">${won ? 'Solved in ' + guesses.length + (guesses.length === 1 ? ' guess' : ' guesses') : 'The answer was'}</div>
       <div class="reveal-country">${target.capitals.map(c=>c.name).join(' / ')}</div>
       <div class="reveal-subtitle">capital of <span class="country-name">${target.country}</span></div>
-      ${flagHtml(target.country)}
       <div class="reveal-section">
         ${target.capitals.map(cityLineHtml).join('')}
       </div>`;
