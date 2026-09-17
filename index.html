@@ -1160,14 +1160,11 @@
     globe.pointOfView({ lat: point.lat, lng: point.lon, altitude: zoomAltitude }, (instant || reducedMotion) ? 0 : 900);
   }
 
-  // Start the globe once the page has painted and the browser is idle, so the game UI is
-  // usable first and three.js setup doesn't sit in the way of the first render.
-  function startGlobeWhenIdle(){
-    if('requestIdleCallback' in window) requestIdleCallback(initGlobe, { timeout: 1500 });
-    else setTimeout(initGlobe, 200);
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', initGlobe);
+  } else {
+    initGlobe();
   }
-  if(document.readyState === 'complete') startGlobeWhenIdle();
-  else window.addEventListener('load', startGlobeWhenIdle);
 
   const PEEK_UNLOCK_THRESHOLD = 3; // peek box unlocks once this many real guesses have been made
   const STORAGE_KEY = 'gtc_save_v1';
