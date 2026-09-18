@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Guess The Capital Hints &amp; Answer Today — Daily Clues</title>
-<meta name="description" content="Stuck on today's Guess The Capital? Reveal hints one at a time — hemisphere, population, first letter and more — and, if you really need it, today's answer.">
+<meta name="description" content="Stuck on today's Guess The Capital? Reveal hints one at a time — hemisphere, population, first letter, country flag and more — and, if you really need it, today's answer.">
 <meta name="robots" content="index, follow">
 <meta name="theme-color" content="#0a2540">
 <link rel="canonical" href="https://guessthecapital.com/hint.html">
@@ -136,6 +136,7 @@
     padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;
   }
   .hint-label{font-family:'IBM Plex Mono','Plex Mono Fallback',monospace;font-size:11px;letter-spacing:0.8px;text-transform:uppercase;color:var(--brass);font-weight:600;}
+  .hint-flag{display:inline-block;width:80px;height:60px;object-fit:cover;border-radius:4px;box-shadow:0 0 0 1px rgba(10,58,99,0.25);vertical-align:middle;margin-right:10px;}
   .hint-text{font-size:15px;color:var(--ink);line-height:1.5;flex:1;}
   .hint-btn{
     font-family:'IBM Plex Mono','Plex Mono Fallback',monospace;font-size:12px;padding:7px 12px;border-radius:8px;
@@ -158,7 +159,7 @@
 <body>
 <div class="wrap">
 
-  <a class="back-link" href="index.html">&larr; Back to the game</a>
+  <a class="back-link" href="/">&larr; Back to the game</a>
 
   <div class="header">
     <img class="compass" src="logo-globe.svg" alt="Guess The Capital globe" width="44" height="44">
@@ -180,15 +181,15 @@
     <p class="error" id="loadError" hidden>Couldn't load today's puzzle. Try refreshing, or head back to the game.</p>
   </div>
 
-  <a class="play-link" href="index.html">Play today's puzzle &rarr;</a>
+  <a class="play-link" href="/">Play today's puzzle &rarr;</a>
 
   <div class="panel" style="margin-top:22px;">
     <h2>How the hints work</h2>
-    <p>Guess The Capital gives you six tries to name the world capital of the day. Every guess in the game shows how far away you are and which direction to head, and the country search unlocks after three guesses. The clues on this page go a step further for anyone who's stuck: they start vague (which part of the world) and get more specific (how many letters, the first letter), so you can stop as soon as it clicks.</p>
+    <p>Guess The Capital gives you six tries to name the world capital of the day. Every guess in the game shows how far away you are and which direction to head, and the country search unlocks after three guesses. The clues on this page go a step further for anyone who's stuck: they start vague (which part of the world) and get more specific (how many letters, the country's flag, the first letter), so you can stop as soon as it clicks.</p>
     <p>Everyone in the world gets the same capital each day, so the hints here match what you'll see in the game. Come back tomorrow for the next one.</p>
   </div>
 
-  <div class="footnote"><a class="back-link" href="index.html" style="margin-bottom:0;">&larr; Back to the game</a></div>
+  <div class="footnote"><a class="back-link" href="/" style="margin-bottom:0;">&larr; Back to the game</a></div>
 
 </div>
 
@@ -197,11 +198,14 @@
   // --- Load today's puzzle from the game page itself so the two can never disagree ---
   const hintsEl = document.getElementById('hints');
   const errEl = document.getElementById('loadError');
-  let DATA;
+  let DATA, FLAGS = {};
   try {
-    const html = await (await fetch('index.html', { cache: 'force-cache' })).text();
+    // 'no-cache' revalidates with the server each visit, so a stale cached index.html can never make the hints disagree with the game.
+    const html = await (await fetch('index.html', { cache: 'no-cache' })).text();
     const m = html.match(/<script id="capitals-data" type="application\/json">([\s\S]*?)<\/script>/);
     DATA = JSON.parse(m[1]);
+    // Country → ISO code map lives in index.html (FLAG_CODES); reuse it here for the flag clue.
+    try { const f = html.match(/const FLAG_CODES = \{([\s\S]*?)\};/); FLAGS = JSON.parse('{' + f[1] + '}'); } catch (e) { FLAGS = {}; }
   } catch (e) { errEl.hidden = false; return; }
 
   // --- Same ordering as index.html. If BASE_SEED or dayIndex change there, change them here too. ---
@@ -238,12 +242,18 @@
   const shape = words.length === 1 ? `one word, ${letters} letters` : `${words.length} words, ${letters} letters in total`;
   const multi = entry.capitals.length > 1 ? ` This country has more than one official capital — any of them counts in the game.` : '';
 
+  const flagCode = FLAGS[entry.country];
+  const flagHtml = flagCode
+    ? `<img class="hint-flag" src="https://flagcdn.com/w160/${flagCode}.png" srcset="https://flagcdn.com/w320/${flagCode}.png 2x" width="80" height="60" alt="The country's flag">This is the country's flag.`
+    : null;
+
   const hints = [
     ['Where in the world', `It's in the ${ns} and ${ew} hemispheres, ${band}.`],
-    ['How big', `The capital has ${popBand}.`],
-    ['Name shape', `The name is ${shape}.${multi}`],
-    ['First letter', `The capital's name starts with <b>${cap.name[0]}</b>.`],
-    ['The country', `The country's name starts with <b>${entry.country[0]}</b>.`],
+    ['Population', `The capital has ${popBand}.`],
+    ['Number of letters', `The name is ${shape}.${multi}`],
+    ...(flagHtml ? [['Country flag', flagHtml]] : []),
+    ['First letter of capital', `The capital's name starts with <b>${cap.name[0]}</b>.`],
+    ['First letter of country', `The country's name starts with <b>${entry.country[0]}</b>.`],
   ];
 
   hints.forEach(([label,text],i)=>{
